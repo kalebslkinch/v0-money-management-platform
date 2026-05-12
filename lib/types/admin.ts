@@ -10,7 +10,66 @@ export interface Client {
   joinedDate: string
   lastActivity: string
   advisor: string
+  advisorId: string
   avatar?: string
+}
+
+// Advisor Types
+export type AdvisorRole = 'senior_advisor' | 'advisor' | 'junior_advisor'
+export type AdvisorStatus = 'active' | 'on_leave' | 'inactive'
+
+export interface AdvisorPerformance {
+  monthly: number
+  quarterly: number
+  yearly: number
+}
+
+export interface Advisor {
+  id: string
+  name: string
+  email: string
+  phone: string
+  role: AdvisorRole
+  status: AdvisorStatus
+  joinDate: string
+  clientIds: string[]
+  totalAUM: number
+  performance: AdvisorPerformance
+  activeCaseCount: number
+  avatar?: string
+}
+
+// Case Types
+export type CaseType = 'onboarding' | 'annual_review' | 'compliance' | 'complaint' | 'rebalance' | 'kyc_update' | 'general'
+export type CaseStatus = 'open' | 'in_progress' | 'pending_review' | 'resolved' | 'escalated'
+export type CasePriority = 'low' | 'medium' | 'high' | 'critical'
+export type CaseNoteType = 'comment' | 'status_change' | 'escalation'
+
+export interface CaseNote {
+  id: string
+  caseId: string
+  authorName: string
+  content: string
+  createdAt: string
+  type: CaseNoteType
+}
+
+export interface Case {
+  id: string
+  clientId: string
+  clientName: string
+  advisorId: string
+  advisorName: string
+  type: CaseType
+  status: CaseStatus
+  priority: CasePriority
+  title: string
+  description: string
+  createdAt: string
+  updatedAt: string
+  dueDate: string
+  notes: CaseNote[]
+  createdBy: string
 }
 
 // Transaction Types
