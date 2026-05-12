@@ -4,85 +4,70 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.546 0.245 262.881);
-  --chart-1: oklch(0.546 0.245 262.881);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.546 0.245 262.881);
+  /* Deep slate background with subtle warmth */
+  --background: oklch(0.13 0.005 270);
+  --foreground: oklch(0.95 0 0);
   
-  /* Custom semantic colors for finance */
-  --success: oklch(0.696 0.17 162.48);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.828 0.189 84.429);
-  --warning-foreground: oklch(0.205 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Cards with subtle glass effect */
+  --card: oklch(0.17 0.005 270);
+  --card-foreground: oklch(0.95 0 0);
+  
+  --popover: oklch(0.15 0.005 270);
+  --popover-foreground: oklch(0.95 0 0);
+  
+  /* Vibrant cyan/teal primary - distinctive & modern */
+  --primary: oklch(0.75 0.18 195);
+  --primary-foreground: oklch(0.13 0 0);
+  
+  /* Muted backgrounds */
+  --secondary: oklch(0.22 0.005 270);
+  --secondary-foreground: oklch(0.9 0 0);
+  
+  --muted: oklch(0.20 0.005 270);
+  --muted-foreground: oklch(0.65 0 0);
+  
+  --accent: oklch(0.25 0.01 270);
+  --accent-foreground: oklch(0.95 0 0);
+  
+  /* Coral/salmon for destructive - warm contrast */
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  
+  --border: oklch(0.25 0.01 270);
+  --input: oklch(0.22 0.005 270);
+  --ring: oklch(0.75 0.18 195);
+  
+  /* Vibrant chart colors - memorable palette */
+  --chart-1: oklch(0.75 0.18 195);  /* Cyan */
+  --chart-2: oklch(0.72 0.19 145);  /* Emerald */
+  --chart-3: oklch(0.70 0.18 310);  /* Magenta/Pink */
+  --chart-4: oklch(0.78 0.16 85);   /* Amber */
+  --chart-5: oklch(0.65 0.22 265);  /* Indigo */
+  
+  --radius: 0.75rem;
+  
+  /* Sidebar - slightly lighter */
+  --sidebar: oklch(0.11 0.005 270);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.75 0.18 195);
+  --sidebar-primary-foreground: oklch(0.13 0 0);
+  --sidebar-accent: oklch(0.18 0.005 270);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.22 0.01 270);
+  --sidebar-ring: oklch(0.75 0.18 195);
+  
+  /* Finance semantic colors */
+  --success: oklch(0.72 0.19 145);
+  --success-foreground: oklch(0.13 0 0);
+  --warning: oklch(0.78 0.16 85);
+  --warning-foreground: oklch(0.13 0 0);
+  --info: oklch(0.65 0.22 265);
+  --info-foreground: oklch(0.98 0 0);
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: 'Geist', 'Geist Fallback', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -111,6 +96,8 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -130,6 +117,47 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Custom utilities for glass effects and glow */
+@layer utilities {
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl;
+  }
+  
+  .glass-border {
+    @apply border border-white/[0.08];
+  }
+  
+  .glow-primary {
+    box-shadow: 0 0 20px oklch(0.75 0.18 195 / 0.3);
+  }
+  
+  .glow-success {
+    box-shadow: 0 0 20px oklch(0.72 0.19 145 / 0.3);
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-chart-2;
+  }
+  
+  .card-glow {
+    box-shadow: 
+      0 0 0 1px oklch(1 0 0 / 0.05),
+      0 2px 4px oklch(0 0 0 / 0.2),
+      0 12px 24px oklch(0 0 0 / 0.2);
+  }
+  
+  .stat-ring {
+    @apply relative;
+  }
+  
+  .stat-ring::before {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: conic-gradient(from 0deg, var(--primary) 0%, transparent 75%);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), white calc(100% - 3px));
   }
 }

@@ -31,13 +31,7 @@ export default function PortfoliosPage() {
 
   return (
     <>
-      <AdminHeader
-        title="Portfolios"
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/admin' },
-          { label: 'Portfolios' },
-        ]}
-      />
+      <AdminHeader title="Portfolios" />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
           {/* Page Header */}

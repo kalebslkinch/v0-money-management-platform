@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import {
   ArrowUpRight,
@@ -6,9 +8,8 @@ import {
   Landmark,
   CircleDollarSign,
   TrendingUp,
+  ArrowRight,
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, formatDateTime } from '@/lib/utils/format'
 import type { Transaction } from '@/lib/types/admin'
@@ -27,75 +28,116 @@ const transactionIcons = {
   dividend: TrendingUp,
 }
 
-const transactionColors = {
-  deposit: 'text-success',
-  withdrawal: 'text-destructive',
-  buy: 'text-primary',
-  sell: 'text-warning',
-  fee: 'text-muted-foreground',
-  dividend: 'text-success',
+const transactionStyles = {
+  deposit: {
+    icon: 'text-chart-2',
+    bg: 'bg-chart-2/10',
+    border: 'border-chart-2/20',
+  },
+  withdrawal: {
+    icon: 'text-destructive',
+    bg: 'bg-destructive/10',
+    border: 'border-destructive/20',
+  },
+  buy: {
+    icon: 'text-primary',
+    bg: 'bg-primary/10',
+    border: 'border-primary/20',
+  },
+  sell: {
+    icon: 'text-chart-4',
+    bg: 'bg-chart-4/10',
+    border: 'border-chart-4/20',
+  },
+  fee: {
+    icon: 'text-muted-foreground',
+    bg: 'bg-muted',
+    border: 'border-border',
+  },
+  dividend: {
+    icon: 'text-chart-2',
+    bg: 'bg-chart-2/10',
+    border: 'border-chart-2/20',
+  },
 }
 
-const statusColors = {
-  completed: 'bg-success/10 text-success border-success/20',
-  pending: 'bg-warning/10 text-warning border-warning/20',
-  failed: 'bg-destructive/10 text-destructive border-destructive/20',
+const statusStyles = {
+  completed: 'bg-chart-2/10 text-chart-2',
+  pending: 'bg-chart-4/10 text-chart-4',
+  failed: 'bg-destructive/10 text-destructive',
 }
 
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
-    <Card className="col-span-1 lg:col-span-2">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="col-span-1 lg:col-span-2 rounded-2xl bg-card border border-border/50">
+      <div className="flex items-center justify-between p-6 pb-0">
         <div>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Latest client activity</CardDescription>
+          <h3 className="text-lg font-semibold mb-1">Recent Transactions</h3>
+          <p className="text-sm text-muted-foreground">Latest client activity</p>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/admin/transactions">View All</Link>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          asChild
+          className="text-primary hover:text-primary hover:bg-primary/10"
+        >
+          <Link href="/admin/transactions" className="flex items-center gap-1">
+            View All
+            <ArrowRight className="size-4" />
+          </Link>
         </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      </div>
+      
+      <div className="p-6 pt-4">
+        <div className="space-y-2">
           {transactions.map((transaction) => {
             const Icon = transactionIcons[transaction.type]
+            const styles = transactionStyles[transaction.type]
+            
             return (
               <div
                 key={transaction.id}
-                className="flex items-center gap-4 rounded-lg border p-3"
+                className="group flex items-center gap-4 rounded-xl p-3 transition-all duration-200 hover:bg-accent/50 cursor-pointer"
               >
                 <div
                   className={cn(
-                    'flex size-10 items-center justify-center rounded-full bg-muted',
-                    transactionColors[transaction.type]
+                    'flex size-11 items-center justify-center rounded-xl border',
+                    styles.bg,
+                    styles.border
                   )}
                 >
-                  <Icon className="size-5" />
+                  <Icon className={cn('size-5', styles.icon)} />
                 </div>
+                
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium truncate">{transaction.clientName}</p>
-                    <Badge variant="outline" className={cn('text-xs', statusColors[transaction.status])}>
+                    <span className={cn(
+                      'px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider',
+                      statusStyles[transaction.status]
+                    )}>
                       {transaction.status}
-                    </Badge>
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
                     {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                    {transaction.asset && ` - ${transaction.asset}`}
+                    {transaction.asset && ` · ${transaction.asset}`}
                   </p>
                 </div>
+                
                 <div className="text-right">
                   <p
                     className={cn(
                       'font-semibold tabular-nums',
-                      transaction.type === 'deposit' || transaction.type === 'dividend'
-                        ? 'text-success'
-                        : transaction.type === 'withdrawal' || transaction.type === 'fee'
+                      (transaction.type === 'deposit' || transaction.type === 'dividend')
+                        ? 'text-chart-2'
+                        : (transaction.type === 'withdrawal' || transaction.type === 'fee')
                         ? 'text-destructive'
-                        : ''
+                        : 'text-foreground'
                     )}
                   >
-                    {transaction.type === 'deposit' || transaction.type === 'dividend' ? '+' : ''}
-                    {transaction.type === 'withdrawal' || transaction.type === 'fee' ? '-' : ''}
+                    {(transaction.type === 'deposit' || transaction.type === 'dividend') ? '+' : ''}
+                    {(transaction.type === 'withdrawal' || transaction.type === 'fee') ? '-' : ''}
                     {formatCurrency(transaction.amount)}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -106,7 +148,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             )
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -15,44 +15,75 @@ import {
   topPerformingClients,
 } from '@/lib/data/mock-analytics'
 import { getRecentTransactions } from '@/lib/data/mock-transactions'
+import { Sparkles, Calendar } from 'lucide-react'
 
 export default function AdminDashboard() {
-  const recentTransactions = getRecentTransactions(6)
+  const recentTransactions = getRecentTransactions(5)
 
   return (
     <>
       <AdminHeader title="Dashboard" />
-      <main className="flex-1 overflow-auto p-6">
-        <div className="mx-auto max-w-7xl space-y-6">
-          {/* Page Header */}
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, James. Here&apos;s an overview of your portfolio management.
-            </p>
-          </div>
-
-          {/* KPI Stats */}
-          <StatsCards data={kpiData} />
-
-          {/* Charts Row */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            <PortfolioChart data={portfolioPerformanceData} />
-            <AllocationChart data={assetAllocationData} />
-          </div>
-
-          {/* Bottom Section */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Transactions and Activity - 2 columns */}
-            <div className="lg:col-span-2 space-y-6">
-              <RecentTransactions transactions={recentTransactions} />
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 md:p-8">
+          <div className="mx-auto max-w-7xl space-y-8">
+            {/* Page Header with greeting */}
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-primary mb-2">
+                  <Sparkles className="size-5" />
+                  <span className="text-sm font-medium">Good morning</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  Welcome back, James
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Here&apos;s what&apos;s happening with your portfolios today.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border/50">
+                <Calendar className="size-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </span>
+              </div>
             </div>
-            
-            {/* Right Sidebar - 1 column */}
-            <div className="space-y-6">
-              <AlertsPanel alerts={alerts} />
-              <TopClients clients={topPerformingClients} />
-              <ActivityFeed activities={recentActivities.slice(0, 5)} />
+
+            {/* KPI Stats */}
+            <StatsCards data={kpiData} />
+
+            {/* Charts Row */}
+            <div className="grid gap-6 lg:grid-cols-3">
+              <PortfolioChart data={portfolioPerformanceData} />
+              <AllocationChart data={assetAllocationData} />
+            </div>
+
+            {/* Bottom Section - Bento Grid */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Transactions - spans 2 columns on lg */}
+              <div className="md:col-span-2">
+                <RecentTransactions transactions={recentTransactions} />
+              </div>
+              
+              {/* Alerts */}
+              <div className="md:col-span-1">
+                <AlertsPanel alerts={alerts} />
+              </div>
+              
+              {/* Top Clients */}
+              <div className="md:col-span-1">
+                <TopClients clients={topPerformingClients} />
+              </div>
+              
+              {/* Activity Feed - spans 2 columns on md */}
+              <div className="md:col-span-1 lg:col-span-2">
+                <ActivityFeed activities={recentActivities.slice(0, 5)} />
+              </div>
             </div>
           </div>
         </div>

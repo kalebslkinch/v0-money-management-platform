@@ -10,7 +10,8 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Wallet,
+  TrendingUp,
+  Zap,
 } from 'lucide-react'
 
 import {
@@ -19,7 +20,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -54,9 +54,6 @@ const navigationItems = [
     url: '/admin/analytics',
     icon: BarChart3,
   },
-]
-
-const settingsItems = [
   {
     title: 'Settings',
     url: '/admin/settings',
@@ -75,18 +72,18 @@ export function AdminSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r-0">
+      <SidebarHeader className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/admin">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Wallet className="size-4" />
+            <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
+              <Link href="/admin" className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-2 shadow-lg glow-primary">
+                  <Zap className="size-5 text-primary-foreground" />
                 </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">PMFS</span>
-                  <span className="text-xs text-muted-foreground">Admin Portal</span>
+                <div className="flex flex-col leading-none">
+                  <span className="text-lg font-bold tracking-tight">PMFS</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Wealth Platform</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -94,74 +91,79 @@ export function AdminSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="px-3">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="size-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="gap-1">
+              {navigationItems.map((item) => {
+                const active = isActive(item.url)
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.title}
+                      className={`
+                        h-11 rounded-xl transition-all duration-200
+                        ${active 
+                          ? 'bg-primary/10 text-primary shadow-sm border border-primary/20' 
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                        }
+                      `}
+                    >
+                      <Link href={item.url} className="flex items-center gap-3">
+                        <item.icon className={`size-[18px] ${active ? 'text-primary' : ''}`} />
+                        <span className="font-medium">{item.title}</span>
+                        {active && (
+                          <div className="ml-auto size-1.5 rounded-full bg-primary animate-pulse" />
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="size-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Quick Stats Mini Card */}
+        <div className="mt-6 mx-1 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-chart-2/5 border border-primary/10">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="size-4 text-primary" />
+            <span className="text-xs font-medium text-muted-foreground">Today&apos;s Performance</span>
+          </div>
+          <div className="text-2xl font-bold text-foreground">+2.4%</div>
+          <div className="text-xs text-chart-2 mt-1">Portfolio growth</div>
+        </div>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <Avatar className="size-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  JW
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-medium text-sm">James Wilson</span>
-                <span className="text-xs text-muted-foreground">Senior Advisor</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Sign Out" className="text-muted-foreground hover:text-foreground">
-              <LogOut className="size-4" />
-              <span>Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="p-3">
+        <div className="rounded-xl bg-accent/50 p-3">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" className="hover:bg-transparent">
+                <Avatar className="size-9 ring-2 ring-primary/20">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-chart-2 text-primary-foreground text-xs font-semibold">
+                    JW
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col leading-none">
+                  <span className="font-semibold text-sm">James Wilson</span>
+                  <span className="text-[11px] text-muted-foreground">Senior Advisor</span>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                tooltip="Sign Out" 
+                className="h-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="size-4" />
+                <span className="text-sm">Sign Out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
       </SidebarFooter>
       
       <SidebarRail />

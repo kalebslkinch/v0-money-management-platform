@@ -10,13 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 export default function SettingsPage() {
   return (
     <>
-      <AdminHeader
-        title="Settings"
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/admin' },
-          { label: 'Settings' },
-        ]}
-      />
+      <AdminHeader title="Settings" />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-3xl space-y-6">
           {/* Page Header */}

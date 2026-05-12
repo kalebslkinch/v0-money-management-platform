@@ -89,13 +89,7 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <AdminHeader
-        title="Transactions"
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/admin' },
-          { label: 'Transactions' },
-        ]}
-      />
+      <AdminHeader title="Transactions" />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
           {/* Page Header */}

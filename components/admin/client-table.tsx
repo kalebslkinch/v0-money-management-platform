@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, MoreHorizontal, Eye, Mail, ArrowUpDown } from 'lucide-react'
+import { Search, MoreHorizontal, Eye, Mail, ArrowUpDown, Filter, Users } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -37,15 +36,15 @@ interface ClientTableProps {
 }
 
 const statusStyles = {
-  active: 'bg-success/10 text-success border-success/20',
-  inactive: 'bg-muted text-muted-foreground border-muted',
-  pending: 'bg-warning/10 text-warning border-warning/20',
+  active: 'bg-chart-2/10 text-chart-2',
+  inactive: 'bg-muted text-muted-foreground',
+  pending: 'bg-chart-4/10 text-chart-4',
 }
 
 const riskStyles = {
-  low: 'bg-success/10 text-success border-success/20',
-  moderate: 'bg-warning/10 text-warning border-warning/20',
-  high: 'bg-destructive/10 text-destructive border-destructive/20',
+  low: 'bg-chart-2/10 text-chart-2',
+  moderate: 'bg-chart-4/10 text-chart-4',
+  high: 'bg-destructive/10 text-destructive',
 }
 
 export function ClientTable({ clients }: ClientTableProps) {
@@ -86,24 +85,25 @@ export function ClientTable({ clients }: ClientTableProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search clients..."
+            placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-11 bg-accent/50 border-0 rounded-xl placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/50"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <Filter className="size-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-[130px] h-11 rounded-xl border-0 bg-accent/50">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
@@ -111,10 +111,10 @@ export function ClientTable({ clients }: ClientTableProps) {
             </SelectContent>
           </Select>
           <Select value={riskFilter} onValueChange={setRiskFilter}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-[130px] h-11 rounded-xl border-0 bg-accent/50">
               <SelectValue placeholder="Risk" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">All Risk</SelectItem>
               <SelectItem value="low">Low</SelectItem>
               <SelectItem value="moderate">Moderate</SelectItem>
@@ -125,15 +125,15 @@ export function ClientTable({ clients }: ClientTableProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border">
+      <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>
+            <TableRow className="hover:bg-transparent border-b border-border/50">
+              <TableHead className="h-12">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="-ml-3 h-8"
+                  className="-ml-3 h-8 text-muted-foreground hover:text-foreground"
                   onClick={() => handleSort('name')}
                 >
                   Client
@@ -144,47 +144,56 @@ export function ClientTable({ clients }: ClientTableProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="-ml-3 h-8"
+                  className="-ml-3 h-8 text-muted-foreground hover:text-foreground"
                   onClick={() => handleSort('portfolioValue')}
                 >
                   Portfolio Value
                   <ArrowUpDown className="ml-2 size-3" />
                 </Button>
               </TableHead>
-              <TableHead>Risk Level</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="text-muted-foreground">Risk Level</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="-ml-3 h-8"
+                  className="-ml-3 h-8 text-muted-foreground hover:text-foreground"
                   onClick={() => handleSort('lastActivity')}
                 >
                   Last Activity
                   <ArrowUpDown className="ml-2 size-3" />
                 </Button>
               </TableHead>
-              <TableHead>Advisor</TableHead>
+              <TableHead className="text-muted-foreground">Advisor</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  No clients found.
+                <TableCell colSpan={7} className="h-32">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                      <Users className="size-6 text-muted-foreground" />
+                    </div>
+                    <p className="font-medium">No clients found</p>
+                    <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               filteredClients.map((client) => (
-                <TableRow key={client.id}>
+                <TableRow 
+                  key={client.id} 
+                  className="group hover:bg-accent/50 border-b border-border/30 last:border-0"
+                >
                   <TableCell>
                     <Link
                       href={`/admin/clients/${client.id}`}
-                      className="flex items-center gap-3 group"
+                      className="flex items-center gap-3"
                     >
-                      <Avatar className="size-9">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      <Avatar className="size-10 ring-2 ring-border group-hover:ring-primary/30 transition-all">
+                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-chart-2/20 text-primary text-xs font-semibold">
                           {getInitials(client.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -196,18 +205,26 @@ export function ClientTable({ clients }: ClientTableProps) {
                       </div>
                     </Link>
                   </TableCell>
-                  <TableCell className="font-medium tabular-nums">
-                    {formatCurrency(client.portfolioValue)}
+                  <TableCell>
+                    <span className="font-semibold tabular-nums text-foreground">
+                      {formatCurrency(client.portfolioValue)}
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={cn('capitalize', riskStyles[client.riskLevel])}>
+                    <span className={cn(
+                      'px-2.5 py-1 rounded-full text-xs font-semibold capitalize',
+                      riskStyles[client.riskLevel]
+                    )}>
                       {client.riskLevel}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={cn('capitalize', statusStyles[client.status])}>
+                    <span className={cn(
+                      'px-2.5 py-1 rounded-full text-xs font-semibold capitalize',
+                      statusStyles[client.status]
+                    )}>
                       {client.status}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDate(client.lastActivity)}
@@ -216,19 +233,23 @@ export function ClientTable({ clients }: ClientTableProps) {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
                           <MoreHorizontal className="size-4" />
                           <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem asChild className="rounded-lg">
                           <Link href={`/admin/clients/${client.id}`}>
                             <Eye className="mr-2 size-4" />
                             View Details
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-lg">
                           <Mail className="mr-2 size-4" />
                           Send Email
                         </DropdownMenuItem>
@@ -243,9 +264,12 @@ export function ClientTable({ clients }: ClientTableProps) {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-muted-foreground">
-        Showing {filteredClients.length} of {clients.length} clients
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{filteredClients.length}</span> of{' '}
+          <span className="font-medium text-foreground">{clients.length}</span> clients
+        </p>
+      </div>
     </div>
   )
 }

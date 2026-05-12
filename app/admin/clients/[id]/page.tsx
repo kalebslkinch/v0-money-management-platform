@@ -79,14 +79,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
 
   return (
     <>
-      <AdminHeader
-        title={client.name}
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/admin' },
-          { label: 'Clients', href: '/admin/clients' },
-          { label: client.name },
-        ]}
-      />
+      <AdminHeader title={client.name} />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
           {/* Back Button */}
