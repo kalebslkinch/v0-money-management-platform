@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import type { GetStaticPaths, GetStaticProps } from 'next'
 import Link from 'next/link'
 import {
   Mail,
@@ -29,11 +29,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { getClientById } from '@/lib/data/mock-clients'
+import { mockClients, getClientById } from '@/lib/data/mock-clients'
 import { getTransactionsByClientId } from '@/lib/data/mock-transactions'
 import { getPortfolioByClientId } from '@/lib/data/mock-portfolios'
 import { formatCurrency, formatDate, formatPercentage, getInitials, formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
+import type { Client, Transaction, Portfolio } from '@/lib/types/admin'
 
 const statusStyles = {
   active: 'bg-success/10 text-success border-success/20',
@@ -63,20 +64,35 @@ const transactionStatusColors = {
 }
 
 interface ClientDetailPageProps {
-  params: Promise<{ id: string }>
+  client: Client
+  transactions: Transaction[]
+  portfolio: Portfolio | null
 }
 
-export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
-  const { id } = await params
+export const getStaticPaths: GetStaticPaths = async () => {
+  const paths = mockClients.map(client => ({
+    params: { id: client.id },
+  }))
+  return { paths, fallback: false }
+}
+
+export const getStaticProps: GetStaticProps<ClientDetailPageProps> = async ({ params }) => {
+  const id = params?.id as string
   const client = getClientById(id)
-  
+
   if (!client) {
-    notFound()
+    return { notFound: true }
   }
 
   const transactions = getTransactionsByClientId(id)
-  const portfolio = getPortfolioByClientId(id)
+  const portfolio = getPortfolioByClientId(id) ?? null
 
+  return {
+    props: { client, transactions, portfolio },
+  }
+}
+
+export default function ClientDetailPage({ client, transactions, portfolio }: ClientDetailPageProps) {
   return (
     <>
       <AdminHeader title={client.name} />

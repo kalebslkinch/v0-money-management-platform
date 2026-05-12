@@ -18,7 +18,6 @@ const riskStyles = {
 }
 
 export default function PortfoliosPage() {
-  // Get clients that have portfolios
   const clientsWithPortfolios = mockClients
     .filter(client => mockPortfolios[client.id])
     .map(client => ({
@@ -59,7 +58,7 @@ export default function PortfoliosPage() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -122,7 +121,7 @@ export default function PortfoliosPage() {
                         {getInitials(client.name)}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium truncate">{client.name}</p>

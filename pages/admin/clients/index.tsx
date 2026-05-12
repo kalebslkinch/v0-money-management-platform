@@ -9,7 +9,7 @@ export default function ClientsPage() {
   const totalClients = mockClients.length
   const activeClients = mockClients.filter(c => c.status === 'active').length
   const totalAUM = mockClients.reduce((sum, c) => sum + c.portfolioValue, 0)
-  
+
   return (
     <>
       <AdminHeader title="Clients" />

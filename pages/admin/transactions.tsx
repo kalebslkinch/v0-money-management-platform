@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import Link from 'next/link'
 import {
@@ -75,7 +73,6 @@ export default function TransactionsPage() {
     return matchesSearch && matchesType && matchesStatus
   })
 
-  // Calculate summary stats
   const totalDeposits = mockTransactions
     .filter(t => t.type === 'deposit' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)

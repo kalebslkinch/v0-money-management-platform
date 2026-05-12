@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/router'
 import {
   LayoutDashboard,
   Users,
@@ -62,7 +62,7 @@ const navigationItems = [
 ]
 
 export function AdminSidebar() {
-  const pathname = usePathname()
+  const { pathname } = useRouter()
 
   const isActive = (url: string) => {
     if (url === '/admin') {

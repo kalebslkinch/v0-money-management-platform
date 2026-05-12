@@ -40,15 +40,15 @@ export default function AdminDashboard() {
                   Here&apos;s what&apos;s happening with your portfolios today.
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border/50">
                 <Calendar className="size-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
                   })}
                 </span>
               </div>
@@ -69,17 +69,17 @@ export default function AdminDashboard() {
               <div className="md:col-span-2">
                 <RecentTransactions transactions={recentTransactions} />
               </div>
-              
+
               {/* Alerts */}
               <div className="md:col-span-1">
                 <AlertsPanel alerts={alerts} />
               </div>
-              
+
               {/* Top Clients */}
               <div className="md:col-span-1">
                 <TopClients clients={topPerformingClients} />
               </div>
-              
+
               {/* Activity Feed - spans 2 columns on md */}
               <div className="md:col-span-1 lg:col-span-2">
                 <ActivityFeed activities={recentActivities.slice(0, 5)} />
