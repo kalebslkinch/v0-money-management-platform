@@ -129,6 +129,29 @@ export interface TeamMember {
   updatedAt: string
 }
 
+// ─── Customer complaints (SRD-U09) ────────────────────────────────────────────
+export type ComplaintCategory =
+  | 'service'
+  | 'billing'
+  | 'technical'
+  | 'advisor'
+  | 'other'
+
+export type ComplaintStatus = 'submitted' | 'under_review' | 'resolved' | 'closed'
+
+export interface Complaint {
+  id: string
+  clientId: string
+  clientName: string
+  category: ComplaintCategory
+  subject: string
+  description: string
+  status: ComplaintStatus
+  referenceNumber: string
+  createdAt: string
+  updatedAt: string
+}
+
 // ─── Task records (manager-managed tasks) ─────────────────────────────────────
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type TaskStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'

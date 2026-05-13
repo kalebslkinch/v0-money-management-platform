@@ -1,17 +1,18 @@
 'use client'
 
-import { ShieldCheck, FileText, Database } from 'lucide-react'
+import { ShieldCheck, FileText, Database, TrendingUp } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 import { useUserRole } from '@/hooks/use-user-role'
 import { useDataSharingConsent } from '@/hooks/use-store'
 import { mockAdvisors } from '@/lib/data/mock-advisors'
 import { mockClients } from '@/lib/data/mock-clients'
+import { kpiData, riskDistributionData } from '@/lib/data/mock-analytics'
 import { formatDateTime } from '@/lib/utils/format'
+import { cn } from '@/lib/utils'
 
 /**
  * Privacy, consent and data-usage management page (SRD-G04, SRD-U08).
@@ -72,10 +73,6 @@ export default function PrivacyPage() {
                   assigned adviser to coordinate consultations.
                 </li>
               </ul>
-              <p className="text-xs text-muted-foreground">
-                We do not sell your personal data. Aggregated, anonymised insights may be used to
-                improve the service.
-              </p>
             </CardContent>
           </Card>
 
@@ -99,9 +96,10 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {!isCustomer && (
-                <Badge variant="outline" className="text-xs">
-                  Read-only — switch to a customer role to edit consent.
-                </Badge>
+                <p className="text-xs text-muted-foreground">
+                  These consent settings are managed by the account holder and cannot be modified
+                  here.
+                </p>
               )}
 
               <ConsentRow
@@ -137,6 +135,100 @@ export default function PrivacyPage() {
                 onChange={value => update({ shareTransactions: value })}
                 disabled={!isCustomer || !consent.shareWithAdvisor}
               />
+            </CardContent>
+          </Card>
+
+          {/* Anonymised platform trends */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-primary" />
+                Anonymised platform trends
+              </CardTitle>
+              <CardDescription>
+                What we learn across all platform users — aggregated, stripped of any personally
+                identifiable information, and used only to improve the service.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* KPI stat tiles */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <TrendTile
+                  label="Active clients"
+                  value={String(kpiData.activeClients)}
+                  sub={`+${kpiData.clientsChange}% growth`}
+                  positive
+                />
+                <TrendTile
+                  label="Assets under management"
+                  value={`£${(kpiData.totalAUM / 1_000_000).toFixed(1)}M`}
+                  sub={`+${kpiData.aumChange}% YTD`}
+                  positive
+                />
+                <TrendTile
+                  label="Avg. budget adherence"
+                  value="82%"
+                  sub="+4 pp vs last month"
+                  positive
+                />
+                <TrendTile
+                  label="Most common overspend"
+                  value="Food delivery"
+                  sub="Flagged across 4 clients"
+                />
+              </div>
+
+              {/* Risk profile stacked bar */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Client risk profile distribution
+                </p>
+                <div className="flex h-3 w-full overflow-hidden rounded-full">
+                  {riskDistributionData.map((r, i) => (
+                    <div
+                      key={r.level}
+                      className={cn(
+                        'h-full transition-all',
+                        i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-amber-400' : 'bg-red-500',
+                      )}
+                      style={{ width: `${r.percentage}%` }}
+                      title={`${r.level}: ${r.percentage}%`}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-4 text-xs text-muted-foreground">
+                  {riskDistributionData.map((r, i) => (
+                    <span key={r.level} className="flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          'inline-block size-2 rounded-full',
+                          i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-amber-400' : 'bg-red-500',
+                        )}
+                      />
+                      {r.level} — {r.percentage}%
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* PFMS category adherence bars */}
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Budget adherence by spending category — platform avg.
+                </p>
+                {CATEGORY_TRENDS.map(cat => (
+                  <CategoryAdherenceRow key={cat.label} {...cat} />
+                ))}
+              </div>
+
+              <p className="border-t pt-3 text-xs text-muted-foreground">
+                Trends are computed across{' '}
+                <span className="font-medium text-foreground">
+                  {kpiData.activeClients} active customers
+                </span>{' '}
+                and refreshed weekly. Names, account numbers, and individual transaction details are
+                never included in any aggregated output.
+              </p>
             </CardContent>
           </Card>
 
@@ -180,6 +272,60 @@ function ConsentRow({ label, description, checked, disabled, onChange }: Consent
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
+    </div>
+  )
+}
+
+// ─── Anonymised trends helpers ─────────────────────────────────────────────────
+
+const CATEGORY_TRENDS = [
+  { label: 'Groceries',     pct: 81, note: 'Tracking well — minor impulse purchases detected' },
+  { label: 'Food delivery', pct: 67, note: 'Most common overspend — flagged platform-wide' },
+  { label: 'Transport',     pct: 88, note: 'Consistent across most clients' },
+  { label: 'Subscriptions', pct: 94, note: 'Highest adherence category' },
+  { label: 'Household',     pct: 79, note: 'Slight increase tracked this month' },
+]
+
+interface TrendTileProps {
+  label: string
+  value: string
+  sub: string
+  positive?: boolean
+}
+
+function TrendTile({ label, value, sub, positive }: TrendTileProps) {
+  return (
+    <div className="rounded-lg border bg-muted/40 p-3 space-y-1">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold leading-tight truncate">{value}</p>
+      <p className={cn('text-xs', positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')}>
+        {sub}
+      </p>
+    </div>
+  )
+}
+
+interface CategoryAdherenceRowProps {
+  label: string
+  pct: number
+  note: string
+}
+
+function CategoryAdherenceRow({ label, pct, note }: CategoryAdherenceRowProps) {
+  const barColor = pct >= 85 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-red-500'
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="font-medium">{label}</span>
+        <span className="text-muted-foreground">{pct}% within budget</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn('h-full rounded-full transition-all', barColor)}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">{note}</p>
     </div>
   )
 }

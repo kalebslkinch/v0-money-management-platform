@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type {
   AppNotification,
+  Complaint,
   ConsultationRecord,
   ConsultationRequest,
   ConsultationResponse,
@@ -33,6 +34,7 @@ const STORAGE_KEYS = {
   notifications: 'pmfs_notifications',
   teamMembers: 'pmfs_team_members',
   tasks: 'pmfs_task_records',
+  complaints: 'pmfs_complaints',
 } as const
 
 const CHANGE_EVENT = 'pmfs:store-change'
@@ -455,4 +457,45 @@ export function useTasks() {
   )
 
   return { tasks: all, create, update, remove }
+}
+
+// ─── Customer complaints (SRD-U09) ────────────────────────────────────────────
+
+function generateReferenceNumber(): string {
+  const prefix = 'CMP'
+  const date = new Date()
+  const yymm = `${String(date.getFullYear()).slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}`
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `${prefix}-${yymm}-${rand}`
+}
+
+export function useComplaints(clientId?: string) {
+  const [all, setAll] = useStorageList<Complaint>(STORAGE_KEYS.complaints)
+  const items = clientId ? all.filter(item => item.clientId === clientId) : all
+
+  const create = useCallback(
+    (input: Omit<Complaint, 'id' | 'status' | 'referenceNumber' | 'createdAt' | 'updatedAt'>) => {
+      const now = new Date().toISOString()
+      const next: Complaint = {
+        ...input,
+        id: generateId('CMP'),
+        status: 'submitted',
+        referenceNumber: generateReferenceNumber(),
+        createdAt: now,
+        updatedAt: now,
+      }
+      setAll([next, ...readArray<Complaint>(STORAGE_KEYS.complaints)])
+      pushNotification({
+        kind: 'complaint',
+        audience: 'manager',
+        title: 'New customer complaint',
+        message: `${input.clientName} submitted a complaint: "${input.subject}".`,
+        href: '/admin/complaints',
+      })
+      return next
+    },
+    [setAll],
+  )
+
+  return { complaints: items, create }
 }

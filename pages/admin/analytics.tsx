@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -17,14 +17,61 @@ import { RouteGuard } from '@/components/auth/route-guard'
 import { useUserRole } from '@/hooks/use-user-role'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
 import { getVisibleClients, getVisibleTransactions } from '@/lib/utils/role-filters'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 import { formatCurrency, formatPercentage } from '@/lib/utils/format'
 import { computeTeamInsights } from '@/lib/utils/team-insights'
-import { DollarSign, TrendingUp, Users, AlertTriangle, ShieldCheck, Activity } from 'lucide-react'
+import {
+  DollarSign,
+  TrendingUp,
+  Users,
+  AlertTriangle,
+  ShieldCheck,
+  Activity,
+  Download,
+  Filter,
+  BarChart2,
+  LineChart as LineChartIcon,
+} from 'lucide-react'
+
+// ─── CSV export helper ────────────────────────────────────────────────────────
+
+function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+  const escape = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
+  const csv = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
 
 export default function AnalyticsPage() {
   const { user } = useUserRole()
+
+  // ── Filter state ─────────────────────────────────────────────────────────
+  const [riskTierFilter, setRiskTierFilter] = useState<string>('all')
+  const [advisorFilter, setAdvisorFilter] = useState<string>('all')
+  const [cashFlowPeriod, setCashFlowPeriod] = useState<'3m' | '6m' | 'all'>('all')
+  const [cashFlowChartType, setCashFlowChartType] = useState<'bar' | 'line'>('bar')
+  const [categoryChartType, setCategoryChartType] = useState<'bar' | 'line'>('bar')
+  const [categoryLimit, setCategoryLimit] = useState<'5' | '10' | 'all'>('5')
 
   const visibleClients = useMemo(() => getVisibleClients(user), [user])
   const visibleTransactions = useMemo(() => getVisibleTransactions(user), [user])
@@ -100,16 +147,220 @@ export default function AnalyticsPage() {
     .sort((a, b) => b.spent - a.spent)
     .slice(0, 5)
 
+  // ── Filtered / derived data ───────────────────────────────────────────────
+
+  const allCategoryData = useMemo(
+    () =>
+      Object.entries(categoryTotals)
+        .map(([name, spent]) => ({ name, spent }))
+        .sort((a, b) => b.spent - a.spent),
+    [categoryTotals],
+  )
+
+  const filteredCategoryData = useMemo(() => {
+    if (categoryLimit === 'all') return allCategoryData
+    return allCategoryData.slice(0, Number(categoryLimit))
+  }, [allCategoryData, categoryLimit])
+
+  const filteredCashFlowData = useMemo(() => {
+    if (cashFlowPeriod === 'all') return cashFlowData
+    return cashFlowData.slice(-(cashFlowPeriod === '3m' ? 3 : 6))
+  }, [cashFlowData, cashFlowPeriod])
+
+  const filteredAdvisorTeams = useMemo(() => {
+    if (advisorFilter === 'all') return teamInsights.advisorTeams
+    return teamInsights.advisorTeams.filter(t => t.label === advisorFilter)
+  }, [teamInsights.advisorTeams, advisorFilter])
+
+  const filteredRiskCohorts = useMemo(() => {
+    if (riskTierFilter === 'all') return teamInsights.riskCohorts
+    return teamInsights.riskCohorts.filter(c => c.label === riskTierFilter)
+  }, [teamInsights.riskCohorts, riskTierFilter])
+
+  // ── Export handlers ───────────────────────────────────────────────────────
+
+  const exportCohortCsv = () => {
+    const headers = ['Cohort', 'Clients', 'On Track %', 'Total Budget ($)', 'Projected ($)', 'Avg Income Utilisation %']
+    const rows = [...filteredAdvisorTeams, ...filteredRiskCohorts].map(c => [
+      c.label, c.clientCount, c.onTrackPct, c.totalBudget, c.totalProjected, c.avgIncomeUtilisation,
+    ])
+    downloadCsv('analytics-cohort-summary.csv', headers, rows)
+  }
+
+  const exportCashFlowCsv = () => {
+    const headers = ['Month', 'Inflow ($)', 'Outflow ($)']
+    downloadCsv('analytics-cash-flow.csv', headers, filteredCashFlowData.map(d => [d.month, d.inflow, d.outflow]))
+  }
+
+  const exportCategoryCsv = () => {
+    const headers = ['Category', 'Total Spent ($)']
+    downloadCsv('analytics-category-spending.csv', headers, filteredCategoryData.map(d => [d.name, d.spent]))
+  }
+
+  const exportCategoryPressureCsv = () => {
+    const headers = ['Category', 'Total Budget ($)', 'Total Projected ($)', 'Overspend Ratio (%)', 'Clients Over Cap']
+    downloadCsv(
+      'analytics-category-pressure.csv',
+      headers,
+      teamInsights.categoryPressure.map(d => [d.category, d.totalBudget, d.totalProjected, d.overspendRatio, d.overBudgetCount]),
+    )
+  }
+
+  const exportAllCsv = () => {
+    exportCohortCsv()
+    exportCashFlowCsv()
+    exportCategoryCsv()
+    exportCategoryPressureCsv()
+  }
+
   return (
     <RouteGuard allowedRoles={['manager', 'fa']}>
       <AdminHeader title="Analytics" />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">PFMS Analytics</h1>
-            <p className="text-muted-foreground">
-              Budget adherence, category pressure, and weekly cash movement across your visible customers.
-            </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">PFMS Analytics</h1>
+              <p className="text-muted-foreground">
+                Budget adherence, category pressure, and weekly cash movement across your visible customers.
+              </p>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 shrink-0">
+                  <Download className="size-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Download CSV</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportCohortCsv}>Cohort Summary</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportCashFlowCsv}>Cash Flow</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportCategoryCsv}>Category Spending</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportCategoryPressureCsv}>Category Pressure</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportAllCsv} className="font-medium">
+                  Export All (4 files)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* ── Filter toolbar ─────────────────────────────────────────────── */}
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground shrink-0">
+                <Filter className="size-3.5" />
+                Filters
+              </div>
+              <Separator orientation="vertical" className="h-5 hidden sm:block" />
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={riskTierFilter} onValueChange={setRiskTierFilter}>
+                  <SelectTrigger className="h-8 w-[160px] text-sm bg-background">
+                    <SelectValue placeholder="Risk tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All risk tiers</SelectItem>
+                    {teamInsights.riskCohorts.map(c => (
+                      <SelectItem key={c.label} value={c.label}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
+                  <SelectTrigger className="h-8 w-[190px] text-sm bg-background">
+                    <SelectValue placeholder="Advisor team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All advisor teams</SelectItem>
+                    {teamInsights.advisorTeams.map(t => (
+                      <SelectItem key={t.label} value={t.label}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={categoryLimit} onValueChange={v => setCategoryLimit(v as typeof categoryLimit)}>
+                  <SelectTrigger className="h-8 w-[150px] text-sm bg-background">
+                    <SelectValue placeholder="Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">Top 5 categories</SelectItem>
+                    <SelectItem value="10">Top 10 categories</SelectItem>
+                    <SelectItem value="all">All categories</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Separator orientation="vertical" className="h-5 hidden sm:block" />
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">Period:</span>
+                  <ToggleGroup
+                    type="single"
+                    value={cashFlowPeriod}
+                    onValueChange={v => v && setCashFlowPeriod(v as typeof cashFlowPeriod)}
+                    className="h-8"
+                  >
+                    <ToggleGroupItem value="3m" className="h-7 px-2.5 text-xs">3M</ToggleGroupItem>
+                    <ToggleGroupItem value="6m" className="h-7 px-2.5 text-xs">6M</ToggleGroupItem>
+                    <ToggleGroupItem value="all" className="h-7 px-2.5 text-xs">All</ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">Flow chart:</span>
+                  <ToggleGroup
+                    type="single"
+                    value={cashFlowChartType}
+                    onValueChange={v => v && setCashFlowChartType(v as 'bar' | 'line')}
+                    className="h-8"
+                  >
+                    <ToggleGroupItem value="bar" className="h-7 w-7 p-0">
+                      <BarChart2 className="size-3.5" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="line" className="h-7 w-7 p-0">
+                      <LineChartIcon className="size-3.5" />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">Category chart:</span>
+                  <ToggleGroup
+                    type="single"
+                    value={categoryChartType}
+                    onValueChange={v => v && setCategoryChartType(v as 'bar' | 'line')}
+                    className="h-8"
+                  >
+                    <ToggleGroupItem value="bar" className="h-7 w-7 p-0">
+                      <BarChart2 className="size-3.5" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="line" className="h-7 w-7 p-0">
+                      <LineChartIcon className="size-3.5" />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </div>
+
+              {(riskTierFilter !== 'all' || advisorFilter !== 'all' || cashFlowPeriod !== 'all' || categoryLimit !== '5') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs ml-auto text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setRiskTierFilter('all')
+                    setAdvisorFilter('all')
+                    setCashFlowPeriod('all')
+                    setCategoryLimit('5')
+                  }}
+                >
+                  Reset filters
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-4">
@@ -172,87 +423,161 @@ export default function AnalyticsPage() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Cash Movement by Month</CardTitle>
-                <CardDescription>Completed inflow vs outflow from visible transactions.</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between gap-2">
+                <div>
+                  <CardTitle>Cash Movement by Month</CardTitle>
+                  <CardDescription>Completed inflow vs outflow from visible transactions.</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" onClick={exportCashFlowCsv}>
+                  <Download className="size-3.5" />
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={cashFlowData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-                      <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={value => `$${Math.round(value / 1000)}k`}
-                        className="text-xs text-muted-foreground"
-                        width={50}
-                      />
-                      <Tooltip
-                        content={({ active, payload, label }) => {
-                          if (!active || !payload || payload.length === 0) return null
-
-                          return (
-                            <div className="rounded-lg border bg-card p-3 shadow-md">
-                              <p className="text-sm font-medium mb-2">{label}</p>
-                              {payload.map((entry, index) => (
-                                <p key={index} className="text-sm" style={{ color: entry.color }}>
-                                  {entry.name}: {formatCurrency(entry.value as number)}
-                                </p>
-                              ))}
-                            </div>
-                          )
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="inflow" name="Inflow" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="outflow" name="Outflow" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
+                    {cashFlowChartType === 'bar' ? (
+                      <BarChart data={filteredCashFlowData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={value => `$${Math.round(value / 1000)}k`}
+                          className="text-xs text-muted-foreground"
+                          width={50}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload || payload.length === 0) return null
+                            return (
+                              <div className="rounded-lg border bg-card p-3 shadow-md">
+                                <p className="text-sm font-medium mb-2">{label}</p>
+                                {payload.map((entry, index) => (
+                                  <p key={index} className="text-sm" style={{ color: entry.color }}>
+                                    {entry.name}: {formatCurrency(entry.value as number)}
+                                  </p>
+                                ))}
+                              </div>
+                            )
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="inflow" name="Inflow" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="outflow" name="Outflow" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    ) : (
+                      <LineChart data={filteredCashFlowData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={value => `$${Math.round(value / 1000)}k`}
+                          className="text-xs text-muted-foreground"
+                          width={50}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload || payload.length === 0) return null
+                            return (
+                              <div className="rounded-lg border bg-card p-3 shadow-md">
+                                <p className="text-sm font-medium mb-2">{label}</p>
+                                {payload.map((entry, index) => (
+                                  <p key={index} className="text-sm" style={{ color: entry.color }}>
+                                    {entry.name}: {formatCurrency(entry.value as number)}
+                                  </p>
+                                ))}
+                              </div>
+                            )
+                          }}
+                        />
+                        <Legend />
+                        <Line type="monotone" dataKey="inflow" name="Inflow" stroke="hsl(var(--success))" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="outflow" name="Outflow" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    )}
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Top Spend Categories</CardTitle>
-                <CardDescription>Where spending is concentrated this week.</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between gap-2">
+                <div>
+                  <CardTitle>Top Spend Categories</CardTitle>
+                  <CardDescription>Where spending is concentrated this week.</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" onClick={exportCategoryCsv}>
+                  <Download className="size-3.5" />
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={categoryData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-                      <XAxis dataKey="name" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={value => `$${Math.round(value)}`}
-                        className="text-xs text-muted-foreground"
-                        width={50}
-                      />
-                      <Tooltip
-                        content={({ active, payload, label }) => {
-                          if (!active || !payload || payload.length === 0) return null
-
-                          return (
-                            <div className="rounded-lg border bg-card p-3 shadow-md">
-                              <p className="text-sm font-medium mb-2">{label}</p>
-                              <p className="text-sm text-primary">Spent: {formatCurrency(payload[0].value as number)}</p>
-                            </div>
-                          )
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="spent"
-                        name="Spent"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--primary))' }}
-                      />
-                    </LineChart>
+                    {categoryChartType === 'bar' ? (
+                      <BarChart data={filteredCategoryData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                        <XAxis
+                          type="number"
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={value => `$${Math.round(value)}`}
+                          className="text-xs text-muted-foreground"
+                          width={50}
+                        />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          className="text-xs text-muted-foreground"
+                          width={100}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload || payload.length === 0) return null
+                            return (
+                              <div className="rounded-lg border bg-card p-3 shadow-md">
+                                <p className="text-sm font-medium mb-2">{label}</p>
+                                <p className="text-sm text-primary">Spent: {formatCurrency(payload[0].value as number)}</p>
+                              </div>
+                            )
+                          }}
+                        />
+                        <Bar dataKey="spent" name="Spent" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    ) : (
+                      <LineChart data={filteredCategoryData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                        <XAxis dataKey="name" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={value => `$${Math.round(value)}`}
+                          className="text-xs text-muted-foreground"
+                          width={50}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload || payload.length === 0) return null
+                            return (
+                              <div className="rounded-lg border bg-card p-3 shadow-md">
+                                <p className="text-sm font-medium mb-2">{label}</p>
+                                <p className="text-sm text-primary">Spent: {formatCurrency(payload[0].value as number)}</p>
+                              </div>
+                            )
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="spent"
+                          name="Spent"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ fill: 'hsl(var(--primary))' }}
+                        />
+                      </LineChart>
+                    )}
                   </ResponsiveContainer>
                 </div>
               </CardContent>
@@ -345,16 +670,21 @@ export default function AnalyticsPage() {
             {/* Charts row 1: advisor team comparison + risk cohort adherence */}
             <div className="grid gap-6 lg:grid-cols-2 mb-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Budget Adherence by Advisor Team</CardTitle>
-                  <CardDescription>
-                    % of clients projected on or under budget. Teams anonymised to cohort labels.
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between gap-2">
+                  <div>
+                    <CardTitle>Budget Adherence by Advisor Team</CardTitle>
+                    <CardDescription>
+                      % of clients projected on or under budget. Teams anonymised to cohort labels.
+                    </CardDescription>
+                  </div>
+                  <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" onClick={exportCohortCsv}>
+                    <Download className="size-3.5" />
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={teamInsights.advisorTeams} layout="vertical">
+                      <BarChart data={filteredAdvisorTeams} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
                         <XAxis
                           type="number"
@@ -387,7 +717,7 @@ export default function AnalyticsPage() {
                           }}
                         />
                         <Bar dataKey="onTrackPct" name="On Track %" radius={[0, 4, 4, 0]}>
-                          {teamInsights.advisorTeams.map((entry, index) => (
+                          {filteredAdvisorTeams.map((entry, index) => (
                             <Cell
                               key={index}
                               fill={entry.onTrackPct >= 60 ? 'hsl(var(--success))' : 'hsl(var(--warning))'}
@@ -401,16 +731,21 @@ export default function AnalyticsPage() {
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Budget Adherence by Risk Tier</CardTitle>
-                  <CardDescription>
-                    On-track percentage grouped by client risk profile.
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between gap-2">
+                  <div>
+                    <CardTitle>Budget Adherence by Risk Tier</CardTitle>
+                    <CardDescription>
+                      On-track percentage grouped by client risk profile.
+                    </CardDescription>
+                  </div>
+                  <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" onClick={exportCohortCsv}>
+                    <Download className="size-3.5" />
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={teamInsights.riskCohorts}>
+                      <BarChart data={filteredRiskCohorts}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
                         <XAxis dataKey="label" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
                         <YAxis
@@ -435,7 +770,7 @@ export default function AnalyticsPage() {
                           }}
                         />
                         <Bar dataKey="onTrackPct" name="On Track %" radius={[4, 4, 0, 0]}>
-                          {teamInsights.riskCohorts.map((entry, index) => {
+                          {filteredRiskCohorts.map((entry, index) => {
                             const colors = ['hsl(var(--chart-2))', 'hsl(var(--chart-4))', 'hsl(var(--chart-1))']
                             return <Cell key={index} fill={colors[index % colors.length]} />
                           })}
@@ -554,14 +889,19 @@ export default function AnalyticsPage() {
 
             {/* Cohort detail table */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="size-4" />
-                  Cohort Summary Table
-                </CardTitle>
-                <CardDescription>
-                  Aggregated budget metrics per advisor team. Client identities are not disclosed.
-                </CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="size-4" />
+                    Cohort Summary Table
+                  </CardTitle>
+                  <CardDescription>
+                    Aggregated budget metrics per advisor team. Client identities are not disclosed.
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" onClick={exportCohortCsv}>
+                  <Download className="size-3.5" />
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -577,7 +917,7 @@ export default function AnalyticsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {[...teamInsights.advisorTeams, ...teamInsights.riskCohorts].map((cohort, i) => (
+                      {[...filteredAdvisorTeams, ...filteredRiskCohorts].map((cohort, i) => (
                         <tr key={i} className="border-b last:border-0">
                           <td className="py-2.5 font-medium">{cohort.label}</td>
                           <td className="py-2.5 text-right tabular-nums">{cohort.clientCount}</td>
@@ -595,6 +935,13 @@ export default function AnalyticsPage() {
                           <td className="py-2.5 text-right tabular-nums">{cohort.avgIncomeUtilisation}%</td>
                         </tr>
                       ))}
+                      {[...filteredAdvisorTeams, ...filteredRiskCohorts].length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-6 text-center text-muted-foreground text-sm">
+                            No cohorts match the current filters.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
