@@ -42,14 +42,9 @@ export default function App({ Component, pageProps, router }: AppProps) {
   }, [])
 
   return (
-    <>
-      <style jsx global>{`
-        html, body {
-          font-family: ${lato.style.fontFamily}, sans-serif;
-        }
-      `}</style>
+    <div className={lato.className}>
       {isAdminPage ? <AdminLayout>{content}</AdminLayout> : content}
       {process.env.NODE_ENV === 'production' && <Analytics />}
-    </>
+    </div>
   )
 }
