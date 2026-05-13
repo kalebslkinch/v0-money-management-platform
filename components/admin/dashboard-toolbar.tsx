@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Calendar,
   Sparkles,
+  SunMedium,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,11 +55,12 @@ const VIEW_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>>
 interface DashboardToolbarProps {
   layout: DashboardLayoutAPI
   managerName?: string
+  onReturnToBriefing?: () => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function DashboardToolbar({ layout, managerName = 'James' }: DashboardToolbarProps) {
+export function DashboardToolbar({ layout, managerName = 'James', onReturnToBriefing }: DashboardToolbarProps) {
   const {
     state,
     activeView,
@@ -225,15 +227,33 @@ export function DashboardToolbar({ layout, managerName = 'James' }: DashboardToo
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-xl gap-1.5 text-xs"
-                  onClick={() => setEditMode(true)}
-                >
-                  <Settings2 className="size-3.5" />
-                  Customise
-                </Button>
+                <div className="flex items-center gap-2">
+                  {onReturnToBriefing && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-xl gap-1.5 text-xs"
+                          onClick={onReturnToBriefing}
+                        >
+                          <SunMedium className="size-3.5" />
+                          Briefing
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">Return to daily briefing</TooltipContent>
+                    </Tooltip>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-xl gap-1.5 text-xs"
+                    onClick={() => setEditMode(true)}
+                  >
+                    <Settings2 className="size-3.5" />
+                    Customise
+                  </Button>
+                </div>
               )}
             </div>
           </div>

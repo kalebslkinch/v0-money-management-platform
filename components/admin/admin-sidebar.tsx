@@ -10,7 +10,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  TrendingUp,
   Zap,
   FileText,
   MessagesSquare,
@@ -27,6 +26,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -38,71 +38,54 @@ import { useUserRole } from '@/hooks/use-user-role'
 import { hasPermission } from '@/lib/auth/role-permissions'
 import type { UserRole } from '@/lib/auth/user-context'
 
-const navigationItems = [
+// ─── Nav grouped by task type ─────────────────────────────────────────────────
+// Hick's Law: the user first picks a group (≤4 choices), then an item within it
+// (≤5 choices). This is far cheaper than scanning 13 items in a flat list.
+
+interface NavItem {
+  title: string
+  url: string
+  icon: React.ComponentType<{ className?: string }>
+}
+
+interface NavGroup {
+  label: string | null  // null = no visible label (primary group)
+  items: NavItem[]
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    title: 'Dashboard',
-    url: '/admin',
-    icon: LayoutDashboard,
+    label: null,
+    items: [
+      { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
+    ],
   },
   {
-    title: 'Clients',
-    url: '/admin/clients',
-    icon: Users,
+    label: 'Clients & Work',
+    items: [
+      { title: 'Clients',       url: '/admin/clients',       icon: Users },
+      { title: 'Requests',      url: '/admin/requests',      icon: MessagesSquare },
+      { title: 'Consultations', url: '/admin/consultations', icon: ClipboardList },
+      { title: 'Tasks',         url: '/admin/tasks',         icon: CheckSquare },
+      { title: 'Team',          url: '/admin/staff',         icon: UserCog },
+    ],
   },
   {
-    title: 'Budgets',
-    url: '/admin/portfolios',
-    icon: PieChart,
+    label: 'Finance & Data',
+    items: [
+      { title: 'Budgets',       url: '/admin/portfolios',    icon: PieChart },
+      { title: 'Transactions',  url: '/admin/transactions',  icon: ArrowLeftRight },
+      { title: 'Analytics',     url: '/admin/analytics',     icon: BarChart3 },
+      { title: 'Performance',   url: '/admin/performance',   icon: Gauge },
+      { title: 'Reports',       url: '/admin/reports',       icon: FileText },
+    ],
   },
   {
-    title: 'Transactions',
-    url: '/admin/transactions',
-    icon: ArrowLeftRight,
-  },
-  {
-    title: 'Analytics',
-    url: '/admin/analytics',
-    icon: BarChart3,
-  },
-  {
-    title: 'Performance',
-    url: '/admin/performance',
-    icon: Gauge,
-  },
-  {
-    title: 'Reports',
-    url: '/admin/reports',
-    icon: FileText,
-  },
-  {
-    title: 'Requests',
-    url: '/admin/requests',
-    icon: MessagesSquare,
-  },
-  {
-    title: 'Consultations',
-    url: '/admin/consultations',
-    icon: ClipboardList,
-  },
-  {
-    title: 'Team',
-    url: '/admin/staff',
-    icon: UserCog,
-  },
-  {
-    title: 'Tasks',
-    url: '/admin/tasks',
-    icon: CheckSquare,
-  },
-  {
-    title: 'Privacy',
-    url: '/admin/privacy',
-    icon: ShieldCheck,
-  },
-  {
-    title: 'Settings',
-    url: '/admin/settings',
-    icon: Settings,
+    label: 'System',
+    items: [
+      { title: 'Privacy',  url: '/admin/privacy',  icon: ShieldCheck },
+      { title: 'Settings', url: '/admin/settings', icon: Settings },
+    ],
   },
 ]
 
@@ -112,74 +95,48 @@ function roleSubtitle(role: UserRole): string {
   return 'Customer'
 }
 
+/** Returns true if this nav item should be visible for the given role */
+function isItemVisible(url: string, role: UserRole): boolean {
+  if (url === '/admin/clients')       return hasPermission(role, 'viewClients')
+  if (url === '/admin/analytics')     return hasPermission(role, 'viewAnalytics')
+  if (url === '/admin/transactions')  return hasPermission(role, 'viewTransactions')
+  if (url === '/admin/portfolios')    return hasPermission(role, 'viewPortfolios')
+  if (url === '/admin/performance')   return role === 'manager'
+  if (url === '/admin/consultations') return role === 'manager' || role === 'fa'
+  if (url === '/admin/staff')         return role === 'manager'
+  if (url === '/admin/tasks')         return role === 'manager'
+  return true
+}
+
+/** Role-aware label overrides for customer-facing items */
+function resolveTitle(title: string, url: string, role: UserRole): string {
+  if (role !== 'customer') return title
+  if (url === '/admin/portfolios')   return 'Budgets'
+  if (url === '/admin/transactions') return 'Spending'
+  if (url === '/admin/requests')     return 'My Requests'
+  if (url === '/admin/reports')      return 'My Reports'
+  return title
+}
+
 export function AdminSidebar() {
   const { pathname } = useRouter()
   const { user, isHydrated } = useUserRole()
   const effectiveRole: UserRole = isHydrated ? user.role : 'manager'
   const effectiveName = isHydrated ? user.name : 'James Wilson'
 
-  const isActive = (url: string) => {
-    if (url === '/admin') {
-      return pathname === '/admin'
-    }
-    return pathname.startsWith(url)
-  }
+  const isActive = (url: string) =>
+    url === '/admin' ? pathname === '/admin' : pathname.startsWith(url)
 
-  const visibleNavigationItems = navigationItems.filter(item => {
-    if (item.url === '/admin/clients') {
-      return hasPermission(effectiveRole, 'viewClients')
-    }
-
-    if (item.url === '/admin/analytics') {
-      return hasPermission(effectiveRole, 'viewAnalytics')
-    }
-
-    if (item.url === '/admin/transactions') {
-      return hasPermission(effectiveRole, 'viewTransactions')
-    }
-
-    if (item.url === '/admin/portfolios') {
-      return hasPermission(effectiveRole, 'viewPortfolios')
-    }
-
-    if (item.url === '/admin/performance') {
-      return effectiveRole === 'manager'
-    }
-
-    if (item.url === '/admin/consultations') {
-      return effectiveRole === 'manager' || effectiveRole === 'fa'
-    }
-
-    if (item.url === '/admin/staff') {
-      return effectiveRole === 'manager'
-    }
-
-    if (item.url === '/admin/tasks') {
-      return effectiveRole === 'manager'
-    }
-
-    return true
-  })
-
-  const roleAwareNavigationItems = visibleNavigationItems.map(item => {
-    if (effectiveRole === 'customer' && item.url === '/admin/portfolios') {
-      return { ...item, title: 'Budgets' }
-    }
-
-    if (effectiveRole === 'customer' && item.url === '/admin/transactions') {
-      return { ...item, title: 'Spending' }
-    }
-
-    if (effectiveRole === 'customer' && item.url === '/admin/requests') {
-      return { ...item, title: 'My Requests' }
-    }
-
-    if (effectiveRole === 'customer' && item.url === '/admin/reports') {
-      return { ...item, title: 'My Reports' }
-    }
-
-    return item
-  })
+  // Filter each group to role-visible items, drop empty groups
+  const visibleGroups = NAV_GROUPS.map(group => ({
+    ...group,
+    items: group.items
+      .filter(item => isItemVisible(item.url, effectiveRole))
+      .map(item => ({
+        ...item,
+        title: resolveTitle(item.title, item.url, effectiveRole),
+      })),
+  })).filter(group => group.items.length > 0)
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -202,51 +159,48 @@ export function AdminSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      
-      <SidebarContent className="px-3">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {roleAwareNavigationItems.map((item) => {
-                const active = isActive(item.url)
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      tooltip={item.title}
-                      className={`
-                        h-11 rounded-xl transition-all duration-200
-                        ${active 
-                          ? 'bg-primary/10 text-primary shadow-sm border border-primary/20' 
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                        }
-                      `}
-                    >
-                      <Link href={item.url} className="flex items-center gap-3">
-                        <item.icon className={`size-[18px] ${active ? 'text-primary' : ''}`} />
-                        <span className="font-medium">{item.title}</span>
-                        {active && (
-                          <div className="ml-auto size-1.5 rounded-full bg-primary animate-pulse" />
-                        )}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
 
-        {/* Quick Stats Mini Card */}
-        <div className="mt-6 mx-1 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-chart-2/5 border border-primary/10">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="size-4 text-primary" />
-            <span className="text-xs font-medium text-muted-foreground">Weekly Budget Health</span>
-          </div>
-          <div className="text-2xl font-bold text-foreground">+2.4%</div>
-          <div className="text-xs text-chart-2 mt-1">Spending on-track trend</div>
-        </div>
+      <SidebarContent className="px-3">
+        {visibleGroups.map((group, groupIndex) => (
+          <SidebarGroup key={group.label ?? '__primary'} className={groupIndex > 0 ? 'pt-1' : ''}>
+            {group.label && (
+              <SidebarGroupLabel className="px-2 mb-1 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-semibold">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {group.items.map(item => {
+                  const active = isActive(item.url)
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.title}
+                        className={`
+                          h-9 rounded-xl transition-all duration-200
+                          ${active
+                            ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                          }
+                        `}
+                      >
+                        <Link href={item.url} className="flex items-center gap-3">
+                          <item.icon className={`size-[17px] shrink-0 ${active ? 'text-primary' : ''}`} />
+                          <span className="font-medium text-sm">{item.title}</span>
+                          {active && (
+                            <div className="ml-auto size-1.5 rounded-full bg-primary" />
+                          )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="p-3">

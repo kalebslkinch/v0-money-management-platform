@@ -35,6 +35,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -103,6 +104,33 @@ function CustomerReports({ clientId }: { clientId: string }) {
     })
   }
 
+  function exportCategoryReportPdf() {
+    exportData({
+      filename: `my-budget-report-${new Date().toISOString().slice(0, 10)}`,
+      format: 'pdf',
+      rows: categoryRows,
+      columns: [
+        { key: 'label', label: 'Category' },
+        { key: 'weeklyBudget', label: 'Weekly Budget' },
+        { key: 'spent', label: 'Spent' },
+        { key: 'projected', label: 'Projected' },
+        { key: 'headroom', label: 'Headroom' },
+      ],
+    })
+  }
+
+  function exportTrendReportPdf() {
+    exportData({
+      filename: `my-spending-trend-${new Date().toISOString().slice(0, 10)}`,
+      format: 'pdf',
+      rows: trendRows,
+      columns: [
+        { key: 'day', label: 'Day' },
+        { key: 'total', label: 'Spend (GBP)' },
+      ],
+    })
+  }
+
   function exportCategoryChart() {
     if (categoryChartRef.current)
       exportChart({ element: categoryChartRef.current, filename: `my-budget-chart-${new Date().toISOString().slice(0, 10)}` })
@@ -148,6 +176,11 @@ function CustomerReports({ clientId }: { clientId: string }) {
                     <Download className="mr-2 size-4" />
                     Export Data (CSV)
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportCategoryReportPdf}>
+                    <FileText className="mr-2 size-4" />
+                    Export Data (PDF)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={exportCategoryChart}>
                     <ImageDown className="mr-2 size-4" />
                     Export Chart (PNG)
@@ -211,6 +244,11 @@ function CustomerReports({ clientId }: { clientId: string }) {
                     <Download className="mr-2 size-4" />
                     Export Data (CSV)
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportTrendReportPdf}>
+                    <FileText className="mr-2 size-4" />
+                    Export Data (PDF)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={exportTrendChart}>
                     <ImageDown className="mr-2 size-4" />
                     Export Chart (PNG)
@@ -301,9 +339,39 @@ function AdvisorReports() {
     })
   }
 
+  function exportClientReportPdf() {
+    if (!snapshot || !selectedClient) return
+    exportData({
+      filename: `client-report-${selectedClient.id}-${new Date().toISOString().slice(0, 10)}`,
+      format: 'pdf',
+      rows: categoryRows,
+      columns: [
+        { key: 'label', label: 'Category' },
+        { key: 'weeklyBudget', label: 'Weekly Budget' },
+        { key: 'spent', label: 'Spent' },
+        { key: 'projected', label: 'Projected' },
+      ],
+    })
+  }
+
   function exportBudgetChart() {
     if (budgetChartRef.current && selectedClient)
       exportChart({ element: budgetChartRef.current, filename: `client-budget-chart-${selectedClient.id}-${new Date().toISOString().slice(0, 10)}` })
+  }
+
+  function exportTransactionsReportPdf() {
+    exportData({
+      filename: `client-transactions-${selectedClientId}-${new Date().toISOString().slice(0, 10)}`,
+      format: 'pdf',
+      rows: clientTxns,
+      columns: [
+        { key: 'date', label: 'Date', value: row => formatDate(row.date) },
+        { key: 'type', label: 'Type' },
+        { key: 'description', label: 'Description', value: row => row.description ?? '' },
+        { key: 'amount', label: 'Amount' },
+        { key: 'status', label: 'Status' },
+      ],
+    })
   }
 
   function exportTransactionsReport() {
@@ -395,6 +463,11 @@ function AdvisorReports() {
                         <Download className="mr-2 size-4" />
                         Export Data (CSV)
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={exportClientReportPdf}>
+                        <FileText className="mr-2 size-4" />
+                        Export Data (PDF)
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={exportBudgetChart}>
                         <ImageDown className="mr-2 size-4" />
                         Export Chart (PNG)
@@ -431,15 +504,25 @@ function AdvisorReports() {
                     <CardTitle>Recent Transactions</CardTitle>
                     <CardDescription>{clientTxns.length} record(s) on file</CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportTransactionsReport}
-                    disabled={clientTxns.length === 0}
-                  >
-                    <Download className="mr-2 size-4" />
-                    Export
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" disabled={clientTxns.length === 0}>
+                        <Download className="mr-2 size-4" />
+                        Export
+                        <ChevronDown className="ml-1 size-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={exportTransactionsReport}>
+                        <Download className="mr-2 size-4" />
+                        Export (CSV)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={exportTransactionsReportPdf}>
+                        <FileText className="mr-2 size-4" />
+                        Export (PDF)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
               </Card>
             </>

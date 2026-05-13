@@ -152,6 +152,26 @@ export interface Complaint {
   updatedAt: string
 }
 
+// ─── Performance notes (SRD-M12) ──────────────────────────────────────────────
+export type PerformanceNoteCategory =
+  | 'feedback'
+  | 'commendation'
+  | 'improvement'
+  | 'performance'
+  | 'general'
+
+export interface PerformanceNote {
+  id: string
+  memberId: string          // TeamMember id this note belongs to
+  memberName: string
+  category: PerformanceNoteCategory
+  content: string
+  authorId: string
+  authorName: string
+  createdAt: string
+  updatedAt: string
+}
+
 // ─── Task records (manager-managed tasks) ─────────────────────────────────────
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type TaskStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'

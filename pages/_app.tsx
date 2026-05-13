@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { StoreBootstrap } from '@/components/admin/store-bootstrap'
+import { ReminderScheduler } from '@/components/admin/reminder-scheduler'
 import {
   createDefaultUser,
   PMFS_USER_STORAGE_KEY,
@@ -24,6 +25,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
         </SidebarInset>
       </SidebarProvider>
       <StoreBootstrap />
+      <ReminderScheduler />
     </main>
   );
 }

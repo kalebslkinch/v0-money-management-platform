@@ -81,3 +81,23 @@ export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
 }
 
 export const WIDGET_SIZES: WidgetSize[] = ['small', 'medium', 'large', 'full']
+
+// ─── Daily Briefing ───────────────────────────────────────────────────────────
+
+export type BriefingPriority = 'critical' | 'high' | 'medium' | 'info'
+
+/** A single prioritised item surfaced in the daily briefing view */
+export interface BriefingItem {
+  id: string
+  priority: BriefingPriority
+  /** Lucide icon name */
+  icon: string
+  title: string
+  description: string
+  /** Short contextual badge, e.g. "Due Jan 31" or "2 alerts" */
+  badge?: string
+  /** The widget to scroll/jump to when the user clicks the item's CTA */
+  linkedWidgetId?: WidgetId
+  /** Label for the action button */
+  actionLabel?: string
+}

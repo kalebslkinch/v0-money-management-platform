@@ -17,6 +17,7 @@ import type {
   ConsultationRequest,
   ConsultationResponse,
   DataSharingConsent,
+  PerformanceNote,
   TaskRecord,
   TeamMember,
   UserCategory,
@@ -35,6 +36,7 @@ const STORAGE_KEYS = {
   teamMembers: 'pmfs_team_members',
   tasks: 'pmfs_task_records',
   complaints: 'pmfs_complaints',
+  performanceNotes: 'pmfs_performance_notes',
 } as const
 
 const CHANGE_EVENT = 'pmfs:store-change'
@@ -457,6 +459,45 @@ export function useTasks() {
   )
 
   return { tasks: all, create, update, remove }
+}
+
+// ─── Performance notes (SRD-M12) ──────────────────────────────────────────────
+
+export function usePerformanceNotes(memberId?: string) {
+  const [all, setAll] = useStorageList<PerformanceNote>(STORAGE_KEYS.performanceNotes)
+  const items = memberId ? all.filter(item => item.memberId === memberId) : all
+
+  const create = useCallback(
+    (input: Omit<PerformanceNote, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const now = new Date().toISOString()
+      const next: PerformanceNote = { ...input, id: generateId('PNOTE'), createdAt: now, updatedAt: now }
+      setAll([next, ...readArray<PerformanceNote>(STORAGE_KEYS.performanceNotes)])
+      return next
+    },
+    [setAll],
+  )
+
+  const update = useCallback(
+    (id: string, patch: Partial<Pick<PerformanceNote, 'content' | 'category'>>) => {
+      const current = readArray<PerformanceNote>(STORAGE_KEYS.performanceNotes)
+      setAll(
+        current.map(item =>
+          item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item,
+        ),
+      )
+    },
+    [setAll],
+  )
+
+  const remove = useCallback(
+    (id: string) => {
+      const current = readArray<PerformanceNote>(STORAGE_KEYS.performanceNotes)
+      setAll(current.filter(item => item.id !== id))
+    },
+    [setAll],
+  )
+
+  return { notes: items, create, update, remove }
 }
 
 // ─── Customer complaints (SRD-U09) ────────────────────────────────────────────

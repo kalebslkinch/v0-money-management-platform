@@ -11,6 +11,7 @@
 import { useEffect } from 'react'
 
 const SEED_FLAG_KEY = 'pmfs_seed_v1_done'
+const SEED_TASKS_FLAG_KEY = 'pmfs_seed_v2_tasks_done'
 
 interface SeedNotification {
   id: string
@@ -36,6 +37,24 @@ interface SeedConsultationRequest {
   createdAt: string
   updatedAt: string
   responses: never[]
+}
+
+type SeedTaskStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
+type SeedTaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+
+interface SeedTask {
+  id: string
+  title: string
+  description?: string
+  assigneeId?: string
+  assigneeName?: string
+  priority: SeedTaskPriority
+  status: SeedTaskStatus
+  dueDate?: string
+  createdById: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
 }
 
 export function StoreBootstrap() {
@@ -140,6 +159,80 @@ export function StoreBootstrap() {
     }
 
     window.localStorage.setItem(SEED_FLAG_KEY, 'true')
+    window.dispatchEvent(new CustomEvent('pmfs:store-change'))
+  }, [])
+
+  // ── Task seed (v2) – runs independently so existing users also get demo data ──
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.localStorage.getItem(SEED_TASKS_FLAG_KEY) === 'true') return
+
+    const now = Date.now()
+    const days = (n: number) => new Date(now + n * 86_400_000).toISOString().slice(0, 10)
+
+    const seedTasks: SeedTask[] = [
+      {
+        id: 'TASK-seed-1',
+        title: 'Review Q2 portfolio rebalancing',
+        description: 'Assess all client portfolios ahead of the Q2 rebalancing window.',
+        assigneeId: 'ADV001',
+        assigneeName: 'James Wilson',
+        priority: 'urgent',
+        status: 'in_progress',
+        dueDate: days(-1), // yesterday → overdue
+        createdById: 'MGR001',
+        createdByName: 'Alex Manager',
+        createdAt: new Date(now - 3 * 86_400_000).toISOString(),
+        updatedAt: new Date(now - 86_400_000).toISOString(),
+      },
+      {
+        id: 'TASK-seed-2',
+        title: 'Send monthly performance reports',
+        description: 'Compile and email the monthly performance summary to all clients.',
+        assigneeId: 'ADV002',
+        assigneeName: 'Emily Carter',
+        priority: 'high',
+        status: 'open',
+        dueDate: days(0), // today
+        createdById: 'MGR001',
+        createdByName: 'Alex Manager',
+        createdAt: new Date(now - 2 * 86_400_000).toISOString(),
+        updatedAt: new Date(now - 2 * 86_400_000).toISOString(),
+      },
+      {
+        id: 'TASK-seed-3',
+        title: 'Compliance audit preparation',
+        description: 'Gather documentation required for the upcoming regulatory compliance audit.',
+        priority: 'high',
+        status: 'open',
+        dueDate: days(1), // tomorrow
+        createdById: 'MGR001',
+        createdByName: 'Alex Manager',
+        createdAt: new Date(now - 5 * 86_400_000).toISOString(),
+        updatedAt: new Date(now - 5 * 86_400_000).toISOString(),
+      },
+      {
+        id: 'TASK-seed-4',
+        title: 'Onboard new junior adviser',
+        description: 'Complete system access setup and introductory training for new hire.',
+        assigneeId: 'ADV003',
+        assigneeName: 'Sophie Turner',
+        priority: 'medium',
+        status: 'open',
+        dueDate: days(5),
+        createdById: 'MGR001',
+        createdByName: 'Alex Manager',
+        createdAt: new Date(now - 86_400_000).toISOString(),
+        updatedAt: new Date(now - 86_400_000).toISOString(),
+      },
+    ]
+
+    const existingTasks = readSafe('pmfs_task_records')
+    if (existingTasks.length === 0) {
+      window.localStorage.setItem('pmfs_task_records', JSON.stringify(seedTasks))
+    }
+
+    window.localStorage.setItem(SEED_TASKS_FLAG_KEY, 'true')
     window.dispatchEvent(new CustomEvent('pmfs:store-change'))
   }, [])
 

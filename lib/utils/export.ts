@@ -6,7 +6,7 @@
  * Visualisation formats: 'svg' | 'png'  (browser-native, no extra deps)
  */
 
-export type ExportFormat = 'csv'
+export type ExportFormat = 'csv' | 'pdf'
 
 /** Supported output formats for chart / visualisation export. */
 export type VisualizationFormat = 'svg' | 'png'
@@ -64,6 +64,60 @@ export interface ExportOptions<T> {
   format?: ExportFormat
 }
 
+function toPdfHtml<T>(rows: T[], columns: ExportColumn<T>[], title: string): string {
+  const headerCells = columns.map(col => `<th>${col.label}</th>`).join('')
+  const bodyRows = rows
+    .map(row => {
+      const cells = columns
+        .map(col => {
+          const raw = col.value
+            ? col.value(row)
+            : (row as Record<string, unknown>)[col.key as string]
+          return `<td>${raw ?? ''}</td>`
+        })
+        .join('')
+      return `<tr>${cells}</tr>`
+    })
+    .join('')
+  const generated = new Date().toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8"/>
+  <title>${title}</title>
+  <style>
+    body{font-family:system-ui,sans-serif;font-size:12px;color:#111;margin:2rem}
+    h1{font-size:16px;margin-bottom:.25rem}
+    p.meta{font-size:11px;color:#555;margin-bottom:1.25rem}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f3f4f6;text-align:left;padding:6px 10px;border-bottom:2px solid #d1d5db;font-size:11px}
+    td{padding:5px 10px;border-bottom:1px solid #e5e7eb;font-size:11px}
+    tr:nth-child(even){background:#f9fafb}
+    @media print{body{margin:0}}
+  </style>
+</head><body>
+  <h1>${title}</h1>
+  <p class="meta">Generated ${generated}</p>
+  <table>
+    <thead><tr>${headerCells}</tr></thead>
+    <tbody>${bodyRows}</tbody>
+  </table>
+</body></html>`
+}
+
+function printHtml(html: string): void {
+  if (typeof window === 'undefined') return
+  const win = window.open('', '_blank', 'width=900,height=700')
+  if (!win) return
+  win.document.write(html)
+  win.document.close()
+  win.focus()
+  win.print()
+}
+
 /**
  * Single entry point used by every export action across the app.
  */
@@ -72,6 +126,11 @@ export function exportData<T>({ rows, columns, filename, format = 'csv' }: Expor
     const csv = toCsv(rows, columns)
     const finalName = filename.endsWith('.csv') ? filename : `${filename}.csv`
     downloadBlob(csv, finalName)
+    return
+  }
+  if (format === 'pdf') {
+    const title = filename.replace(/-/g, ' ').replace(/\.pdf$/, '')
+    printHtml(toPdfHtml(rows, columns, title))
     return
   }
 }

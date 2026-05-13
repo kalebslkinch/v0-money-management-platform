@@ -127,16 +127,6 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Two-Factor Authentication</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Add an extra layer of security to your account
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">Enable</Button>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
                   <Label>Change Password</Label>
                   <p className="text-sm text-muted-foreground">
                     Update your password regularly for security

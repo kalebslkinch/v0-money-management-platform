@@ -26,6 +26,7 @@ import { AdminHeader } from '@/components/admin/admin-header'
 import { RouteGuard } from '@/components/auth/route-guard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -65,16 +66,15 @@ function PerformancePageInner() {
   const [search, setSearch] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
+  const [sinceInception, setSinceInception] = useState(false)
 
   const { requests } = useConsultationRequests()
   const advisors = getActiveAdvisors()
 
-  const filteredCases = useMemo(() => filterCases(mockCases, { advisorFilter, fromDate, toDate, search }), [
-    advisorFilter,
-    fromDate,
-    toDate,
-    search,
-  ])
+  const filteredCases = useMemo(
+    () => filterCases(mockCases, { advisorFilter, fromDate: sinceInception ? '' : fromDate, toDate: sinceInception ? '' : toDate, search }),
+    [advisorFilter, fromDate, toDate, search, sinceInception],
+  )
 
   const filteredClients = useMemo(
     () =>
@@ -217,74 +217,94 @@ function PerformancePageInner() {
               <CardDescription>Adviser, client type, and date range.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                <div className="space-y-1.5 lg:col-span-2">
-                  <label className="text-xs text-muted-foreground">Search</label>
-                  <Input
-                    value={search}
-                    onChange={event => setSearch(event.target.value)}
-                    placeholder="Adviser, client name…"
-                  />
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                    <label className="text-xs text-muted-foreground">Search</label>
+                    <Input
+                      value={search}
+                      onChange={event => setSearch(event.target.value)}
+                      placeholder="Adviser, client name…"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">Adviser</label>
+                    <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All advisers</SelectItem>
+                        {mockAdvisors.map(advisor => (
+                          <SelectItem key={advisor.id} value={advisor.id}>
+                            {advisor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">Client risk</label>
+                    <Select value={riskFilter} onValueChange={setRiskFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="moderate">Moderate</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">Client status</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">Adviser</label>
-                  <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All advisers</SelectItem>
-                      {mockAdvisors.map(advisor => (
-                        <SelectItem key={advisor.id} value={advisor.id}>
-                          {advisor.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">Client risk</label>
-                  <Select value={riskFilter} onValueChange={setRiskFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">Client status</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">From</label>
-                  <Input
-                    type="date"
-                    value={fromDate}
-                    onChange={event => setFromDate(event.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">To</label>
-                  <Input
-                    type="date"
-                    value={toDate}
-                    onChange={event => setToDate(event.target.value)}
-                  />
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="space-y-1.5 w-40">
+                    <label className="text-xs text-muted-foreground">From</label>
+                    <Input
+                      type="date"
+                      value={fromDate}
+                      disabled={sinceInception}
+                      onChange={event => setFromDate(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5 w-40">
+                    <label className="text-xs text-muted-foreground">To</label>
+                    <Input
+                      type="date"
+                      value={toDate}
+                      disabled={sinceInception}
+                      onChange={event => setToDate(event.target.value)}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer select-none pb-2">
+                    <Checkbox
+                      checked={sinceInception}
+                      onCheckedChange={(checked) => {
+                        const next = checked === true
+                        setSinceInception(next)
+                        if (next) {
+                          setFromDate('')
+                          setToDate('')
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium leading-none">All time</span>
+                  </label>
                 </div>
               </div>
             </CardContent>
