@@ -52,7 +52,7 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   'recent-transactions': {
     id: 'recent-transactions',
     label: 'Recent Transactions',
-    description: 'Latest deposits, withdrawals, buys, and sells across all client accounts.',
+    description: 'Latest income, bill payments, card spending, refunds, and bank fees.',
     category: 'data',
     defaultSize: 'large',
     minSize: 'medium',
