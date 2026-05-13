@@ -191,9 +191,11 @@ export function AdminSidebar() {
                 <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-2 shadow-lg glow-primary">
                   <Zap className="size-5 text-primary-foreground" />
                 </div>
-                <div className="flex flex-col leading-none">
+                <div className="flex flex-col leading-none gap-0.5">
                   <span className="text-lg font-bold tracking-tight">Alpha Finance</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Wealth Platform</span>
+                  <span className="text-[9px] uppercase tracking-wide text-muted-foreground leading-[1.3]">
+                    Personal Finance<br />Management System
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>

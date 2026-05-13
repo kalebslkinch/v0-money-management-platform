@@ -1,9 +1,7 @@
 'use client'
 
-import { Search, Command } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +16,7 @@ import type { UserRole } from '@/lib/auth/user-context'
 import { switchUserRole } from '@/lib/auth/dev-role-switcher'
 import { HelpDrawer } from '@/components/admin/help-drawer'
 import { NotificationBell } from '@/components/admin/notification-bell'
+import { GlobalSearch } from '@/components/admin/global-search'
 
 
 interface AdminHeaderProps {
@@ -49,16 +48,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ title, breadcrumbs }) => {
       <SidebarTrigger className="-ml-2 text-muted-foreground hover:text-foreground" />
       <h1 className="text-lg font-semibold hidden sm:block">{title}</h1>
       <div className="flex-1 flex items-center justify-end gap-4">
-        <div className="relative max-w-md w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            className="pl-9 pr-12 h-10 bg-accent/50 border-0 rounded-xl placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-primary/50"
-          />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-            <Command className="size-3" />K
-          </kbd>
-        </div>
+        <GlobalSearch />
 
         {/* Live indicator */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-chart-2/10 border border-chart-2/20">

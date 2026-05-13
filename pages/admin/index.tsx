@@ -2,6 +2,7 @@ import { AdminHeader } from '@/components/admin/admin-header'
 import { DashboardToolbar } from '@/components/admin/dashboard-toolbar'
 import { DashboardGrid } from '@/components/admin/dashboard-grid'
 import { PFMSCustomerDashboard } from '@/components/admin/pfms-customer-dashboard'
+import { PrivacyNotice } from '@/components/admin/privacy-notice'
 import { useDashboardLayout } from '@/hooks/use-dashboard-layout'
 import { useUserRole } from '@/hooks/use-user-role'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
@@ -18,7 +19,8 @@ export default function AdminDashboard() {
         <AdminHeader title="My Budget" />
         <main className="flex-1 overflow-auto">
           <div className="px-6 md:px-8 pt-6 pb-8">
-            <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-7xl space-y-6">
+              <PrivacyNotice />
               <PFMSCustomerDashboard snapshot={snapshot} />
             </div>
           </div>

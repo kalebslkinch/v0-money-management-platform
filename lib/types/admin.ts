@@ -168,3 +168,60 @@ export interface Alert {
   clientName?: string
   timestamp: string
 }
+
+// ─── Team-level anonymised insight types ─────────────────────────────────────
+
+/** Budget adherence summary for a named cohort (advisor team or risk tier) */
+export interface CohortBudgetSummary {
+  /** Human-readable label, e.g. "ADV001 Team" or "High Risk" */
+  label: string
+  /** Total number of clients in cohort */
+  clientCount: number
+  /** Clients whose projected spend ≤ total budget */
+  onTrackCount: number
+  /** Percentage on track (0-100) */
+  onTrackPct: number
+  /** Total weekly budget across cohort */
+  totalBudget: number
+  /** Total spent so far this week */
+  totalSpent: number
+  /** Total projected end-of-week spend */
+  totalProjected: number
+  /** Average income utilisation percentage (spent / availableToSpend * 100) */
+  avgIncomeUtilisation: number
+}
+
+/** Per-category pressure across a set of snapshots */
+export interface CategoryPressurePoint {
+  category: string
+  /** Total budget across all clients in scope */
+  totalBudget: number
+  /** Total projected spend */
+  totalProjected: number
+  /** Over-budget ratio: (projected - budget) / budget, can be negative (under) */
+  overspendRatio: number
+  /** Count of clients projected to exceed this category budget */
+  overBudgetCount: number
+}
+
+/** One point on the team budget health trend (week-over-week) */
+export interface TeamHealthTrendPoint {
+  weekLabel: string
+  /** Advisor 1 team on-track percentage */
+  adv001Pct: number
+  /** Advisor 2 team on-track percentage */
+  adv002Pct: number
+  /** Overall team on-track percentage */
+  overallPct: number
+}
+
+/** Top-level shape consumed by the team insights UI */
+export interface TeamInsightData {
+  advisorTeams: CohortBudgetSummary[]
+  riskCohorts: CohortBudgetSummary[]
+  categoryPressure: CategoryPressurePoint[]
+  healthTrend: TeamHealthTrendPoint[]
+  overallOnTrackPct: number
+  totalClientsAnalysed: number
+  topPressureCategory: string
+}
