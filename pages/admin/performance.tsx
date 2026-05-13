@@ -49,7 +49,6 @@ import { mockCases } from '@/lib/data/mock-cases'
 import { mockClients } from '@/lib/data/mock-clients'
 import { useConsultationRequests } from '@/hooks/use-store'
 import { exportData } from '@/lib/utils/export'
-import { formatPercentage } from '@/lib/utils/format'
 import type { Case } from '@/lib/types/admin'
 import type { AdvisorPerformanceSnapshot, TeamInsightPoint } from '@/lib/types/store'
 
@@ -553,6 +552,8 @@ function derivedFallbackResponseHours(cases: Case[]): number {
   return total / cases.length
 }
 
+const MS_PER_DAY = 86_400_000
+
 interface CaseFilterOptions {
   advisorFilter: string
   fromDate: string
@@ -564,7 +565,8 @@ function filterCases(items: Case[], options: CaseFilterOptions): Case[] {
   const { advisorFilter, fromDate, toDate, search } = options
   const term = search.toLowerCase().trim()
   const fromTime = fromDate ? new Date(fromDate).getTime() : -Infinity
-  const toTime = toDate ? new Date(toDate).getTime() + 86_400_000 : Infinity
+  // Add one day in ms so the "to" date is inclusive of the entire selected day
+  const toTime = toDate ? new Date(toDate).getTime() + MS_PER_DAY : Infinity
 
   return items.filter(item => {
     if (advisorFilter !== 'all' && item.advisorId !== advisorFilter) return false
@@ -611,9 +613,6 @@ function buildTeamInsights(cases: Case[]): TeamInsightPoint[] {
     })
     .sort((a, b) => (a.month < b.month ? -1 : 1))
 }
-
-// Reference unused helpers for clarity — formatPercentage is exported for future use
-void formatPercentage
 
 export default function PerformancePage() {
   return (

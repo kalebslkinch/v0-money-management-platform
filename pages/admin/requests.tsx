@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dialog'
 import { useUserRole } from '@/hooks/use-user-role'
 import { pushNotification, useConsultationRequests } from '@/hooks/use-store'
-import { mockClients, getClientById } from '@/lib/data/mock-clients'
+import { getClientById } from '@/lib/data/mock-clients'
 import { getActiveAdvisors } from '@/lib/data/mock-advisors'
 import type { ConsultationRequest, ConsultationRequestStatus } from '@/lib/types/store'
 import { formatRelativeTime } from '@/lib/utils/format'
@@ -395,7 +395,3 @@ function RequestCard({
     </Card>
   )
 }
-
-// Eagerly reference mockClients to avoid tree-shaking when the module is
-// imported only for its types in some environments.
-void mockClients

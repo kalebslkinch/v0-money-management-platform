@@ -75,6 +75,8 @@ const transactionLabels = {
   dividend: 'Cashback',
 }
 
+const MS_PER_DAY = 86_400_000
+
 export default function TransactionsPage() {
   const { user } = useUserRole()
   const [search, setSearch] = useState('')
@@ -98,7 +100,8 @@ export default function TransactionsPage() {
     const matchesRisk = riskFilter === 'all' || client?.riskLevel === riskFilter
     const txnTime = new Date(txn.date).getTime()
     const fromTime = fromDate ? new Date(fromDate).getTime() : -Infinity
-    const toTime = toDate ? new Date(toDate).getTime() + 86_400_000 : Infinity
+    // Add one day in ms so the "to" date is inclusive of the entire selected day
+    const toTime = toDate ? new Date(toDate).getTime() + MS_PER_DAY : Infinity
     const matchesDate = txnTime >= fromTime && txnTime <= toTime
     return matchesSearch && matchesType && matchesStatus && matchesAdvisor && matchesRisk && matchesDate
   })
