@@ -96,7 +96,175 @@ export function ClientTable({
 
   return (
     <div className="space-y-6">
-      {/* ...existing code for manager/fa... */}
+      {/* Search + Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 rounded-xl"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[130px] rounded-xl">
+              <Filter className="size-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={riskFilter} onValueChange={setRiskFilter}>
+            <SelectTrigger className="w-[130px] rounded-xl">
+              <Filter className="size-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Risk" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Risk</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="moderate">Moderate</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Table */}
+      {filteredClients.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-border">
+          <Users className="size-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">No clients match your filters</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Try adjusting your search or filters</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border/50 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/30 hover:bg-muted/30">
+                <TableHead
+                  className="cursor-pointer select-none"
+                  onClick={() => handleSort('name')}
+                >
+                  <span className="flex items-center gap-1.5">
+                    Client
+                    <ArrowUpDown className={cn('size-3.5 text-muted-foreground', sortField === 'name' && 'text-foreground')} />
+                  </span>
+                </TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead
+                  className="cursor-pointer select-none text-right"
+                  onClick={() => handleSort('portfolioValue')}
+                >
+                  <span className="flex items-center justify-end gap-1.5">
+                    Portfolio Value
+                    <ArrowUpDown className={cn('size-3.5 text-muted-foreground', sortField === 'portfolioValue' && 'text-foreground')} />
+                  </span>
+                </TableHead>
+                <TableHead>Risk</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead
+                  className="cursor-pointer select-none"
+                  onClick={() => handleSort('lastActivity')}
+                >
+                  <span className="flex items-center gap-1.5">
+                    Last Activity
+                    <ArrowUpDown className={cn('size-3.5 text-muted-foreground', sortField === 'lastActivity' && 'text-foreground')} />
+                  </span>
+                </TableHead>
+                {showAdvisor && <TableHead>Advisor</TableHead>}
+                {allowActions && <TableHead className="w-[52px]" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredClients.map((client) => (
+                <TableRow key={client.id} className="hover:bg-muted/20 transition-colors">
+                  <TableCell>
+                    <Link
+                      href={`/admin/clients/${client.id}`}
+                      className="flex items-center gap-3 group"
+                    >
+                      <Avatar className="size-9 shrink-0">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                          {getInitials(client.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm group-hover:text-primary transition-colors leading-tight">
+                          {client.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{client.id}</p>
+                      </div>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5">
+                      <p className="text-sm">{client.email}</p>
+                      <p className="text-xs text-muted-foreground">{client.phone}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">
+                    {formatCurrency(client.portfolioValue)}
+                  </TableCell>
+                  <TableCell>
+                    <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize', riskStyles[client.riskLevel])}>
+                      {client.riskLevel}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize', statusStyles[client.status])}>
+                      {client.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground tabular-nums">
+                    {formatDate(client.lastActivity)}
+                  </TableCell>
+                  {showAdvisor && (
+                    <TableCell className="text-sm text-muted-foreground">
+                      {client.advisor}
+                    </TableCell>
+                  )}
+                  {allowActions && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/clients/${client.id}`}>
+                              <Eye className="mr-2 size-4" />
+                              View Client
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <a href={`mailto:${client.email}`}>
+                              <Mail className="mr-2 size-4" />
+                              Send Email
+                            </a>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {/* Result count */}
+      <p className="text-xs text-muted-foreground">
+        Showing {filteredClients.length} of {clients.length} client{clients.length !== 1 ? 's' : ''}
+      </p>
     </div>
   )
 }
