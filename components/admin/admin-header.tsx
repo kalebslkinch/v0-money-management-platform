@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Search, Command } from 'lucide-react'
+import { Search, Command } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge'
 import { useUserRole } from '@/hooks/use-user-role'
 import type { UserRole } from '@/lib/auth/user-context'
 import { switchUserRole } from '@/lib/auth/dev-role-switcher'
+import { HelpDrawer } from '@/components/admin/help-drawer'
+import { NotificationBell } from '@/components/admin/notification-bell'
 
 
 interface AdminHeaderProps {
@@ -95,49 +97,11 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ title, breadcrumbs }) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Notifications dropdown (dev only) */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative rounded-xl hover:bg-accent">
-              <Bell className="size-[18px] text-muted-foreground" />
-              <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                3
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 rounded-xl">
-            <DropdownMenuLabel className="flex items-center justify-between">
-              <span>Notifications</span>
-              <Badge variant="secondary" className="text-[10px]">3 new</Badge>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer">
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-chart-2" />
-                <span className="font-medium text-sm">Large deposit detected</span>
-              </div>
-              <span className="text-xs text-muted-foreground pl-4">Client Sarah Chen - $250,000</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer">
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-warning" />
-                <span className="font-medium text-sm">Budget alert</span>
-              </div>
-              <span className="text-xs text-muted-foreground pl-4">Food delivery spend is trending over weekly cap</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer">
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-primary" />
-                <span className="font-medium text-sm">New client onboarded</span>
-              </div>
-              <span className="text-xs text-muted-foreground pl-4">Michael Roberts - Aggressive profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-center text-sm text-primary cursor-pointer justify-center">
-              View all notifications
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Help & Support (SRD-G02) */}
+        <HelpDrawer />
+
+        {/* Notifications driven by store (SRD-M07) */}
+        <NotificationBell />
       </div>
     </header>
   )

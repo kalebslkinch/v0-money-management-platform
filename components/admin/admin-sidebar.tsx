@@ -12,6 +12,11 @@ import {
   LogOut,
   TrendingUp,
   Zap,
+  FileText,
+  MessagesSquare,
+  ClipboardList,
+  Gauge,
+  ShieldCheck,
 } from 'lucide-react'
 
 import {
@@ -58,6 +63,31 @@ const navigationItems = [
     icon: BarChart3,
   },
   {
+    title: 'Performance',
+    url: '/admin/performance',
+    icon: Gauge,
+  },
+  {
+    title: 'Reports',
+    url: '/admin/reports',
+    icon: FileText,
+  },
+  {
+    title: 'Requests',
+    url: '/admin/requests',
+    icon: MessagesSquare,
+  },
+  {
+    title: 'Consultations',
+    url: '/admin/consultations',
+    icon: ClipboardList,
+  },
+  {
+    title: 'Privacy',
+    url: '/admin/privacy',
+    icon: ShieldCheck,
+  },
+  {
     title: 'Settings',
     url: '/admin/settings',
     icon: Settings,
@@ -100,6 +130,14 @@ export function AdminSidebar() {
       return hasPermission(effectiveRole, 'viewPortfolios')
     }
 
+    if (item.url === '/admin/performance') {
+      return effectiveRole === 'manager'
+    }
+
+    if (item.url === '/admin/consultations') {
+      return effectiveRole === 'manager' || effectiveRole === 'fa'
+    }
+
     return true
   })
 
@@ -110,6 +148,14 @@ export function AdminSidebar() {
 
     if (effectiveRole === 'customer' && item.url === '/admin/transactions') {
       return { ...item, title: 'Spending' }
+    }
+
+    if (effectiveRole === 'customer' && item.url === '/admin/requests') {
+      return { ...item, title: 'My Requests' }
+    }
+
+    if (effectiveRole === 'customer' && item.url === '/admin/reports') {
+      return { ...item, title: 'My Reports' }
     }
 
     return item

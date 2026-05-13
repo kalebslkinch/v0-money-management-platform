@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { StoreBootstrap } from '@/components/admin/store-bootstrap'
 import {
   createDefaultUser,
   PMFS_USER_STORAGE_KEY,
@@ -22,6 +23,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           {children}
         </SidebarInset>
       </SidebarProvider>
+      <StoreBootstrap />
     </main>
   );
 }

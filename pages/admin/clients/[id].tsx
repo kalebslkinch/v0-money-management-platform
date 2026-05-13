@@ -372,11 +372,70 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
             </CardContent>
           </Card>
 
-          {/* PFMS Budget & Spending */}
-          <PFMSCustomerBudgets snapshot={pfmsSnapshot} />
-          <PFMSCustomerSpending snapshot={pfmsSnapshot} />
+          {/* PFMS Budget & Spending — gated by client consent for FAs (SRD-A02) */}
+          <ClientFinancialSummaryGate
+            clientId={client.id}
+            clientName={client.name}
+            viewerRole={user.role}
+            snapshot={pfmsSnapshot}
+          />
         </div>
       </main>
+    </>
+  )
+}
+
+import { useDataSharingConsent } from '@/hooks/use-store'
+
+interface ClientFinancialSummaryGateProps {
+  clientId: string
+  clientName: string
+  viewerRole: 'manager' | 'fa' | 'customer'
+  snapshot: ReturnType<typeof getPFMSSnapshotForCustomer>
+}
+
+function ClientFinancialSummaryGate({
+  clientId,
+  clientName,
+  viewerRole,
+  snapshot,
+}: ClientFinancialSummaryGateProps) {
+  const { consent } = useDataSharingConsent(clientId)
+
+  if (viewerRole === 'fa' && !(consent.shareWithAdvisor && (consent.shareSpending || consent.shareBudgets))) {
+    return (
+      <Card className="rounded-2xl border-border/50">
+        <CardHeader>
+          <CardTitle>Financial Summary</CardTitle>
+          <CardDescription>
+            Awaiting consent from {clientName} to view budgets and spending detail.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          The client has not enabled financial summary sharing with advisers. Ask them to update
+          their{' '}
+          <Link href="/admin/privacy" className="text-primary hover:underline">
+            Privacy & Sharing
+          </Link>{' '}
+          settings to grant access.
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <>
+      {viewerRole === 'fa' && (
+        <Badge variant="outline" className="text-xs w-fit">
+          Viewing financial summary with client consent
+        </Badge>
+      )}
+      {(viewerRole === 'manager' || consent.shareBudgets) && (
+        <PFMSCustomerBudgets snapshot={snapshot} />
+      )}
+      {(viewerRole === 'manager' || consent.shareSpending) && (
+        <PFMSCustomerSpending snapshot={snapshot} />
+      )}
     </>
   )
 }
