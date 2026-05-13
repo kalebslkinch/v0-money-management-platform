@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Download, FileText, Users } from 'lucide-react'
+import { ChevronDown, Download, FileText, ImageDown, Users } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { PrivacyNotice } from '@/components/admin/privacy-notice'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,8 +29,14 @@ import { useUserRole } from '@/hooks/use-user-role'
 import { useUserTransactions, readConsentSync } from '@/hooks/use-store'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 import { getVisibleClients, getVisibleTransactions } from '@/lib/utils/role-filters'
-import { exportData } from '@/lib/utils/export'
+import { exportChart, exportData } from '@/lib/utils/export'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 /**
  * Unified personalised report page (SRD-U06, SRD-A03) wired into the
@@ -51,6 +57,8 @@ export default function ReportsPage() {
 function CustomerReports({ clientId }: { clientId: string }) {
   const snapshot = useMemo(() => getPFMSSnapshotForCustomer(clientId), [clientId])
   const { transactions } = useUserTransactions(clientId)
+  const categoryChartRef = useRef<HTMLDivElement>(null)
+  const trendChartRef = useRef<HTMLDivElement>(null)
 
   const categoryRows = snapshot.categories.map(category => ({
     label: category.label,
@@ -95,6 +103,16 @@ function CustomerReports({ clientId }: { clientId: string }) {
     })
   }
 
+  function exportCategoryChart() {
+    if (categoryChartRef.current)
+      exportChart({ element: categoryChartRef.current, filename: `my-budget-chart-${new Date().toISOString().slice(0, 10)}` })
+  }
+
+  function exportTrendChart() {
+    if (trendChartRef.current)
+      exportChart({ element: trendChartRef.current, filename: `my-spending-trend-chart-${new Date().toISOString().slice(0, 10)}` })
+  }
+
   return (
     <>
       <AdminHeader title="My Reports" />
@@ -117,13 +135,28 @@ function CustomerReports({ clientId }: { clientId: string }) {
                 <CardTitle>Budget vs. Spend by Category</CardTitle>
                 <CardDescription>{snapshot.weekLabel}</CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={exportCategoryReport}>
-                <Download className="mr-2 size-4" />
-                Export
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="mr-2 size-4" />
+                    Export
+                    <ChevronDown className="ml-1 size-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={exportCategoryReport}>
+                    <Download className="mr-2 size-4" />
+                    Export Data (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportCategoryChart}>
+                    <ImageDown className="mr-2 size-4" />
+                    Export Chart (PNG)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div ref={categoryChartRef} className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={categoryRows}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
@@ -165,18 +198,28 @@ function CustomerReports({ clientId }: { clientId: string }) {
                 <CardTitle>Spending Trend</CardTitle>
                 <CardDescription>Daily total across recent transactions.</CardDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportTrendReport}
-                disabled={trendRows.length === 0}
-              >
-                <Download className="mr-2 size-4" />
-                Export
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={trendRows.length === 0}>
+                    <Download className="mr-2 size-4" />
+                    Export
+                    <ChevronDown className="ml-1 size-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={exportTrendReport}>
+                    <Download className="mr-2 size-4" />
+                    Export Data (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportTrendChart}>
+                    <ImageDown className="mr-2 size-4" />
+                    Export Chart (PNG)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
-              <div className="h-[260px]">
+              <div ref={trendChartRef} className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={trendRows}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
@@ -216,6 +259,7 @@ function AdvisorReports() {
   const { user } = useUserRole()
   const visibleClients = useMemo(() => getVisibleClients(user), [user])
   const visibleTransactions = useMemo(() => getVisibleTransactions(user), [user])
+  const budgetChartRef = useRef<HTMLDivElement>(null)
   const [selectedClientId, setSelectedClientId] = useState<string>(
     visibleClients[0]?.id ?? '',
   )
@@ -255,6 +299,11 @@ function AdvisorReports() {
         { key: 'projected', label: 'Projected' },
       ],
     })
+  }
+
+  function exportBudgetChart() {
+    if (budgetChartRef.current && selectedClient)
+      exportChart({ element: budgetChartRef.current, filename: `client-budget-chart-${selectedClient.id}-${new Date().toISOString().slice(0, 10)}` })
   }
 
   function exportTransactionsReport() {
@@ -333,13 +382,28 @@ function AdvisorReports() {
                     <CardTitle>Budget Snapshot — {selectedClient?.name}</CardTitle>
                     <CardDescription>{snapshot.weekLabel}</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={exportClientReport}>
-                    <Download className="mr-2 size-4" />
-                    Export
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Download className="mr-2 size-4" />
+                        Export
+                        <ChevronDown className="ml-1 size-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={exportClientReport}>
+                        <Download className="mr-2 size-4" />
+                        Export Data (CSV)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={exportBudgetChart}>
+                        <ImageDown className="mr-2 size-4" />
+                        Export Chart (PNG)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[300px]">
+                  <div ref={budgetChartRef} className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={categoryRows}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />

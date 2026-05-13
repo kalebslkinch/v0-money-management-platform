@@ -111,3 +111,39 @@ export interface TeamInsightPoint {
   avgResponseHours: number
   totalCases: number
 }
+
+// ─── Team members (manager-managed staff records) ─────────────────────────────
+export type TeamMemberRole = 'senior_advisor' | 'advisor' | 'junior_advisor'
+export type TeamMemberStatus = 'active' | 'on_leave' | 'inactive'
+
+export interface TeamMember {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  role: TeamMemberRole
+  department?: string
+  status: TeamMemberStatus
+  joinedAt: string      // ISO date
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── Task records (manager-managed tasks) ─────────────────────────────────────
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type TaskStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
+
+export interface TaskRecord {
+  id: string
+  title: string
+  description?: string
+  assigneeId?: string
+  assigneeName?: string
+  priority: TaskPriority
+  status: TaskStatus
+  dueDate?: string      // ISO date
+  createdById: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
+}

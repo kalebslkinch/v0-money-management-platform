@@ -17,6 +17,8 @@ import {
   ClipboardList,
   Gauge,
   ShieldCheck,
+  UserCog,
+  CheckSquare,
 } from 'lucide-react'
 
 import {
@@ -83,6 +85,16 @@ const navigationItems = [
     icon: ClipboardList,
   },
   {
+    title: 'Team',
+    url: '/admin/staff',
+    icon: UserCog,
+  },
+  {
+    title: 'Tasks',
+    url: '/admin/tasks',
+    icon: CheckSquare,
+  },
+  {
     title: 'Privacy',
     url: '/admin/privacy',
     icon: ShieldCheck,
@@ -136,6 +148,14 @@ export function AdminSidebar() {
 
     if (item.url === '/admin/consultations') {
       return effectiveRole === 'manager' || effectiveRole === 'fa'
+    }
+
+    if (item.url === '/admin/staff') {
+      return effectiveRole === 'manager'
+    }
+
+    if (item.url === '/admin/tasks') {
+      return effectiveRole === 'manager'
     }
 
     return true

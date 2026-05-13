@@ -9,6 +9,8 @@ export type Permission =
   | 'viewPortfolios'
   | 'manageClientRecords'
   | 'customizeDashboard'
+  | 'manageTeam'
+  | 'manageTasks'
 
 const ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boolean>> = {
   manager: {
@@ -20,6 +22,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boolean>> = {
     viewPortfolios: true,
     manageClientRecords: true,
     customizeDashboard: true,
+    manageTeam: true,
+    manageTasks: true,
   },
   fa: {
     viewDashboard: true,
@@ -30,6 +34,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boolean>> = {
     viewPortfolios: true,
     manageClientRecords: false,
     customizeDashboard: false,
+    manageTeam: false,
+    manageTasks: false,
   },
   customer: {
     viewDashboard: true,
@@ -40,6 +46,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Record<Permission, boolean>> = {
     viewPortfolios: true,
     manageClientRecords: false,
     customizeDashboard: false,
+    manageTeam: false,
+    manageTasks: false,
   },
 }
 

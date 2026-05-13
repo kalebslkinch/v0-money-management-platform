@@ -16,6 +16,8 @@ import type {
   ConsultationRequest,
   ConsultationResponse,
   DataSharingConsent,
+  TaskRecord,
+  TeamMember,
   UserCategory,
   UserTransaction,
 } from '@/lib/types/store'
@@ -29,6 +31,8 @@ const STORAGE_KEYS = {
   consultations: 'pmfs_consultation_records',
   consents: 'pmfs_data_consents',
   notifications: 'pmfs_notifications',
+  teamMembers: 'pmfs_team_members',
+  tasks: 'pmfs_task_records',
 } as const
 
 const CHANGE_EVENT = 'pmfs:store-change'
@@ -375,4 +379,80 @@ export function useNotifications(audience: 'manager' | 'fa' | 'customer', audien
   }, [setAll, audience, audienceUserId])
 
   return { notifications: items, unreadCount: items.filter(item => !item.read).length, markRead, markAllRead }
+}
+
+// ─── Team members (manager-managed staff records) ─────────────────────────────
+
+export function useTeamMembers() {
+  const [all, setAll] = useStorageList<TeamMember>(STORAGE_KEYS.teamMembers)
+
+  const create = useCallback(
+    (input: Omit<TeamMember, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const now = new Date().toISOString()
+      const next: TeamMember = { ...input, id: generateId('TM'), createdAt: now, updatedAt: now }
+      setAll([next, ...readArray<TeamMember>(STORAGE_KEYS.teamMembers)])
+      return next
+    },
+    [setAll],
+  )
+
+  const update = useCallback(
+    (id: string, patch: Partial<Omit<TeamMember, 'id' | 'createdAt'>>) => {
+      const current = readArray<TeamMember>(STORAGE_KEYS.teamMembers)
+      setAll(
+        current.map(item =>
+          item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item,
+        ),
+      )
+    },
+    [setAll],
+  )
+
+  const remove = useCallback(
+    (id: string) => {
+      const current = readArray<TeamMember>(STORAGE_KEYS.teamMembers)
+      setAll(current.filter(item => item.id !== id))
+    },
+    [setAll],
+  )
+
+  return { teamMembers: all, create, update, remove }
+}
+
+// ─── Task records (manager-managed tasks) ─────────────────────────────────────
+
+export function useTasks() {
+  const [all, setAll] = useStorageList<TaskRecord>(STORAGE_KEYS.tasks)
+
+  const create = useCallback(
+    (input: Omit<TaskRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const now = new Date().toISOString()
+      const next: TaskRecord = { ...input, id: generateId('TASK'), createdAt: now, updatedAt: now }
+      setAll([next, ...readArray<TaskRecord>(STORAGE_KEYS.tasks)])
+      return next
+    },
+    [setAll],
+  )
+
+  const update = useCallback(
+    (id: string, patch: Partial<Omit<TaskRecord, 'id' | 'createdAt'>>) => {
+      const current = readArray<TaskRecord>(STORAGE_KEYS.tasks)
+      setAll(
+        current.map(item =>
+          item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item,
+        ),
+      )
+    },
+    [setAll],
+  )
+
+  const remove = useCallback(
+    (id: string) => {
+      const current = readArray<TaskRecord>(STORAGE_KEYS.tasks)
+      setAll(current.filter(item => item.id !== id))
+    },
+    [setAll],
+  )
+
+  return { tasks: all, create, update, remove }
 }
