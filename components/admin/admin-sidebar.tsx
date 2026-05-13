@@ -27,6 +27,9 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { useUserRole } from '@/hooks/use-user-role'
+import { hasPermission } from '@/lib/auth/role-permissions'
+import type { UserRole } from '@/lib/auth/user-context'
 
 const navigationItems = [
   {
@@ -61,8 +64,15 @@ const navigationItems = [
   },
 ]
 
+function roleSubtitle(role: UserRole): string {
+  if (role === 'manager') return 'Manager'
+  if (role === 'fa') return 'Financial Advisor'
+  return 'Customer'
+}
+
 export function AdminSidebar() {
   const { pathname } = useRouter()
+  const { user } = useUserRole()
 
   const isActive = (url: string) => {
     if (url === '/admin') {
@@ -70,6 +80,26 @@ export function AdminSidebar() {
     }
     return pathname.startsWith(url)
   }
+
+  const visibleNavigationItems = navigationItems.filter(item => {
+    if (item.url === '/admin/clients') {
+      return hasPermission(user.role, 'viewClients')
+    }
+
+    if (item.url === '/admin/analytics') {
+      return hasPermission(user.role, 'viewAnalytics')
+    }
+
+    if (item.url === '/admin/transactions') {
+      return hasPermission(user.role, 'viewTransactions')
+    }
+
+    if (item.url === '/admin/portfolios') {
+      return hasPermission(user.role, 'viewPortfolios')
+    }
+
+    return true
+  })
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -95,7 +125,7 @@ export function AdminSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {navigationItems.map((item) => {
+              {visibleNavigationItems.map((item) => {
                 const active = isActive(item.url)
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -144,12 +174,17 @@ export function AdminSidebar() {
               <SidebarMenuButton size="lg" className="hover:bg-transparent">
                 <Avatar className="size-9 ring-2 ring-primary/20">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-chart-2 text-primary-foreground text-xs font-semibold">
-                    JW
+                    {user.name
+                      .split(' ')
+                      .map(part => part[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col leading-none">
-                  <span className="font-semibold text-sm">James Wilson</span>
-                  <span className="text-[11px] text-muted-foreground">Senior Advisor</span>
+                  <span className="font-semibold text-sm">{user.name}</span>
+                  <span className="text-[11px] text-muted-foreground">{roleSubtitle(user.role)}</span>
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -2,16 +2,21 @@ import { Plus, Users, TrendingUp, Wallet } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { ClientTable } from '@/components/admin/client-table'
 import { Button } from '@/components/ui/button'
-import { mockClients } from '@/lib/data/mock-clients'
+import { RouteGuard } from '@/components/auth/route-guard'
+import { useUserRole } from '@/hooks/use-user-role'
+import { getVisibleClients } from '@/lib/utils/role-filters'
 import { formatCurrency } from '@/lib/utils/format'
 
 export default function ClientsPage() {
-  const totalClients = mockClients.length
-  const activeClients = mockClients.filter(c => c.status === 'active').length
-  const totalAUM = mockClients.reduce((sum, c) => sum + c.portfolioValue, 0)
+  const { user } = useUserRole()
+  const visibleClients = getVisibleClients(user)
+
+  const totalClients = visibleClients.length
+  const activeClients = visibleClients.filter(c => c.status === 'active').length
+  const totalAUM = visibleClients.reduce((sum, c) => sum + c.portfolioValue, 0)
 
   return (
-    <>
+    <RouteGuard allowedRoles={['manager', 'fa']}>
       <AdminHeader title="Clients" />
       <main className="flex-1 overflow-auto">
         <div className="p-6 md:p-8">
@@ -21,13 +26,17 @@ export default function ClientsPage() {
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Clients</h1>
                 <p className="text-muted-foreground mt-1">
-                  Manage your client relationships and portfolios.
+                  {user.role === 'manager'
+                    ? 'Manage your client relationships and portfolios.'
+                    : 'Review and manage your assigned client relationships.'}
                 </p>
               </div>
-              <Button className="rounded-xl h-11 px-5 bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 transition-opacity">
-                <Plus className="mr-2 size-4" />
-                Add Client
-              </Button>
+              {user.role === 'manager' && (
+                <Button className="rounded-xl h-11 px-5 bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 transition-opacity">
+                  <Plus className="mr-2 size-4" />
+                  Add Client
+                </Button>
+              )}
             </div>
 
             {/* Quick Stats */}
@@ -62,10 +71,14 @@ export default function ClientsPage() {
             </div>
 
             {/* Client Table */}
-            <ClientTable clients={mockClients} />
+            <ClientTable
+              clients={visibleClients}
+              showAdvisor={user.role === 'manager'}
+              allowActions={user.role !== 'customer'}
+            />
           </div>
         </div>
       </main>
-    </>
+    </RouteGuard>
   )
 }

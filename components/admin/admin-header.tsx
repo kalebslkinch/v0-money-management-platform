@@ -13,13 +13,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
+import { useUserRole } from '@/hooks/use-user-role'
+import type { UserRole } from '@/lib/auth/user-context'
 
 interface AdminHeaderProps {
   title: string
   breadcrumbs?: { label: string; href?: string }[]
 }
 
+function roleLabel(role: UserRole): string {
+  if (role === 'manager') return 'Manager'
+  if (role === 'fa') return 'Financial Advisor'
+  return 'Customer'
+}
+
 export function AdminHeader({ title }: AdminHeaderProps) {
+  const { role } = useUserRole()
+
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center gap-4 px-6 backdrop-blur-xl bg-background/80 border-b border-border/50">
       <SidebarTrigger className="-ml-2 text-muted-foreground hover:text-foreground" />
@@ -46,6 +56,10 @@ export function AdminHeader({ title }: AdminHeaderProps) {
           </span>
           <span className="text-xs font-medium text-chart-2">Live</span>
         </div>
+
+        <Badge variant="outline" className="hidden md:inline-flex rounded-full px-3 py-1 text-xs">
+          {roleLabel(role)}
+        </Badge>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

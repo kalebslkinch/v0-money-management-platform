@@ -11,6 +11,7 @@ import {
   Legend,
 } from 'recharts'
 import { AdminHeader } from '@/components/admin/admin-header'
+import { RouteGuard } from '@/components/auth/route-guard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { revenueData, clientGrowthData, kpiData, riskDistributionData } from '@/lib/data/mock-analytics'
 import { formatCurrency, formatPercentage } from '@/lib/utils/format'
@@ -19,7 +20,7 @@ import { cn } from '@/lib/utils'
 
 export default function AnalyticsPage() {
   return (
-    <>
+    <RouteGuard allowedRoles={['manager', 'fa']}>
       <AdminHeader title="Analytics" />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
@@ -315,6 +316,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </main>
-    </>
+    </RouteGuard>
   )
 }

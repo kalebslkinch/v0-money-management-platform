@@ -33,6 +33,8 @@ import { cn } from '@/lib/utils'
 
 interface ClientTableProps {
   clients: Client[]
+  showAdvisor?: boolean
+  allowActions?: boolean
 }
 
 const statusStyles = {
@@ -47,7 +49,11 @@ const riskStyles = {
   high: 'bg-destructive/10 text-destructive',
 }
 
-export function ClientTable({ clients }: ClientTableProps) {
+export function ClientTable({
+  clients,
+  showAdvisor = true,
+  allowActions = true,
+}: ClientTableProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [riskFilter, setRiskFilter] = useState<string>('all')
@@ -164,14 +170,14 @@ export function ClientTable({ clients }: ClientTableProps) {
                   <ArrowUpDown className="ml-2 size-3" />
                 </Button>
               </TableHead>
-              <TableHead className="text-muted-foreground">Advisor</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              {showAdvisor && <TableHead className="text-muted-foreground">Advisor</TableHead>}
+              {allowActions && <TableHead className="w-[50px]"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32">
+                <TableCell colSpan={5 + Number(showAdvisor) + Number(allowActions)} className="h-32">
                   <div className="flex flex-col items-center justify-center text-center">
                     <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-3">
                       <Users className="size-6 text-muted-foreground" />
@@ -229,33 +235,35 @@ export function ClientTable({ clients }: ClientTableProps) {
                   <TableCell className="text-muted-foreground">
                     {formatDate(client.lastActivity)}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{client.advisor}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreHorizontal className="size-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem asChild className="rounded-lg">
-                          <Link href={`/admin/clients/${client.id}`}>
-                            <Eye className="mr-2 size-4" />
-                            View Details
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-lg">
-                          <Mail className="mr-2 size-4" />
-                          Send Email
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {showAdvisor && <TableCell className="text-muted-foreground">{client.advisor}</TableCell>}
+                  {allowActions && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="size-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="rounded-xl">
+                          <DropdownMenuItem asChild className="rounded-lg">
+                            <Link href={`/admin/clients/${client.id}`}>
+                              <Eye className="mr-2 size-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="rounded-lg">
+                            <Mail className="mr-2 size-4" />
+                            Send Email
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
