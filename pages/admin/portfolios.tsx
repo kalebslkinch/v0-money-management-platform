@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { mockClients } from '@/lib/data/mock-clients'
-import { mockPortfolios } from '@/lib/data/mock-portfolios'
+import { PFMSCustomerBudgets } from '@/components/admin/pfms-customer-budgets'
+import { useUserRole } from '@/hooks/use-user-role'
+import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
+import { getVisiblePortfolios } from '@/lib/utils/role-filters'
 import { assetAllocationData, riskDistributionData } from '@/lib/data/mock-analytics'
 import { formatCurrency, formatPercentage, getInitials } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
@@ -18,11 +20,27 @@ const riskStyles = {
 }
 
 export default function PortfoliosPage() {
-  const clientsWithPortfolios = mockClients
-    .filter(client => mockPortfolios[client.id])
-    .map(client => ({
+  const { user } = useUserRole()
+
+  if (user.role === 'customer') {
+    const snapshot = getPFMSSnapshotForCustomer(user.clientId ?? 'CLT001')
+
+    return (
+      <>
+        <AdminHeader title="Budgets" />
+        <main className="flex-1 overflow-auto p-6">
+          <div className="mx-auto max-w-7xl">
+            <PFMSCustomerBudgets snapshot={snapshot} />
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  const clientsWithPortfolios = getVisiblePortfolios(user)
+    .map(({ client, portfolio }) => ({
       ...client,
-      portfolio: mockPortfolios[client.id],
+      portfolio,
     }))
     .sort((a, b) => b.portfolioValue - a.portfolioValue)
 
@@ -37,7 +55,9 @@ export default function PortfoliosPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Portfolios</h1>
             <p className="text-muted-foreground">
-              Overview of all client portfolios and asset allocation.
+              {user.role === 'manager'
+                ? 'Overview of all customer portfolios and asset allocation.'
+                : 'Overview of your assigned customer portfolios.'}
             </p>
           </div>
 
@@ -54,7 +74,7 @@ export default function PortfoliosPage() {
                   {formatCurrency(totalAUM)}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Across {clientsWithPortfolios.length} portfolios
+                  {`Across ${clientsWithPortfolios.length} portfolios`}
                 </p>
               </CardContent>
             </Card>
@@ -105,70 +125,78 @@ export default function PortfoliosPage() {
           {/* Portfolio List */}
           <Card>
             <CardHeader>
-              <CardTitle>Client Portfolios</CardTitle>
-              <CardDescription>Performance comparison across all managed portfolios</CardDescription>
+              <CardTitle>Customer Portfolios</CardTitle>
+              <CardDescription>Performance comparison across visible portfolios.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {clientsWithPortfolios.map((client) => (
-                  <Link
-                    key={client.id}
-                    href={`/admin/clients/${client.id}`}
-                    className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                    <Avatar className="size-10">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {getInitials(client.name)}
-                      </AvatarFallback>
-                    </Avatar>
+                {clientsWithPortfolios.map((client) => {
+                  const itemContent = (
+                    <>
+                      <Avatar className="size-10">
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {getInitials(client.name)}
+                        </AvatarFallback>
+                      </Avatar>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{client.name}</p>
-                        <Badge variant="outline" className={cn('text-xs capitalize', riskStyles[client.riskLevel])}>
-                          {client.riskLevel}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {client.portfolio.holdings.length} holdings
-                      </p>
-                    </div>
-
-                    <div className="hidden sm:block">
-                      <div className="flex gap-1">
-                        {client.portfolio.holdings.slice(0, 4).map((holding, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {holding.ticker || holding.type}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium truncate">{client.name}</p>
+                          <Badge variant="outline" className={cn('text-xs capitalize', riskStyles[client.riskLevel])}>
+                            {client.riskLevel}
                           </Badge>
-                        ))}
-                        {client.portfolio.holdings.length > 4 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{client.portfolio.holdings.length - 4}
-                          </Badge>
-                        )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {client.portfolio.holdings.length} holdings
+                        </p>
                       </div>
-                    </div>
 
-                    <div className="text-right">
-                      <p className="font-semibold tabular-nums">
-                        {formatCurrency(client.portfolioValue)}
-                      </p>
-                      <div className={cn(
-                        'flex items-center justify-end gap-1 text-sm',
-                        client.portfolio.performance.monthly >= 0 ? 'text-success' : 'text-destructive'
-                      )}>
-                        {client.portfolio.performance.monthly >= 0 ? (
-                          <TrendingUp className="size-3" />
-                        ) : (
-                          <TrendingDown className="size-3" />
-                        )}
-                        <span className="tabular-nums">
-                          {formatPercentage(client.portfolio.performance.monthly)} MTD
-                        </span>
+                      <div className="hidden sm:block">
+                        <div className="flex gap-1">
+                          {client.portfolio.holdings.slice(0, 4).map((holding, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {holding.ticker || holding.type}
+                            </Badge>
+                          ))}
+                          {client.portfolio.holdings.length > 4 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{client.portfolio.holdings.length - 4}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+
+                      <div className="text-right">
+                        <p className="font-semibold tabular-nums">
+                          {formatCurrency(client.portfolioValue)}
+                        </p>
+                        <div className={cn(
+                          'flex items-center justify-end gap-1 text-sm',
+                          client.portfolio.performance.monthly >= 0 ? 'text-success' : 'text-destructive'
+                        )}>
+                          {client.portfolio.performance.monthly >= 0 ? (
+                            <TrendingUp className="size-3" />
+                          ) : (
+                            <TrendingDown className="size-3" />
+                          )}
+                          <span className="tabular-nums">
+                            {formatPercentage(client.portfolio.performance.monthly)} MTD
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )
+
+                  return (
+                    <Link
+                      key={client.id}
+                      href={`/admin/clients/${client.id}`}
+                      className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                      {itemContent}
+                    </Link>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>

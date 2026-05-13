@@ -101,6 +101,18 @@ export function AdminSidebar() {
     return true
   })
 
+  const roleAwareNavigationItems = visibleNavigationItems.map(item => {
+    if (user.role === 'customer' && item.url === '/admin/portfolios') {
+      return { ...item, title: 'Budgets' }
+    }
+
+    if (user.role === 'customer' && item.url === '/admin/transactions') {
+      return { ...item, title: 'Spending' }
+    }
+
+    return item
+  })
+
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarHeader className="p-4">
@@ -125,7 +137,7 @@ export function AdminSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {visibleNavigationItems.map((item) => {
+              {roleAwareNavigationItems.map((item) => {
                 const active = isActive(item.url)
                 return (
                   <SidebarMenuItem key={item.title}>

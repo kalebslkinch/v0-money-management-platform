@@ -30,7 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { mockTransactions } from '@/lib/data/mock-transactions'
+import { useUserRole } from '@/hooks/use-user-role'
+import { PFMSCustomerSpending } from '@/components/admin/pfms-customer-spending'
+import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
+import { getVisibleTransactions } from '@/lib/utils/role-filters'
 import { formatCurrency, formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
 
@@ -59,11 +62,13 @@ const statusColors = {
 }
 
 export default function TransactionsPage() {
+  const { user } = useUserRole()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const visibleTransactions = getVisibleTransactions(user)
 
-  const filteredTransactions = mockTransactions.filter((txn) => {
+  const filteredTransactions = visibleTransactions.filter((txn) => {
     const matchesSearch =
       txn.clientName.toLowerCase().includes(search.toLowerCase()) ||
       (txn.asset?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
@@ -73,16 +78,31 @@ export default function TransactionsPage() {
     return matchesSearch && matchesType && matchesStatus
   })
 
-  const totalDeposits = mockTransactions
+  const totalDeposits = visibleTransactions
     .filter(t => t.type === 'deposit' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)
-  const totalWithdrawals = mockTransactions
+  const totalWithdrawals = visibleTransactions
     .filter(t => t.type === 'withdrawal' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)
-  const totalFees = mockTransactions
+  const totalFees = visibleTransactions
     .filter(t => t.type === 'fee' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)
-  const pendingCount = mockTransactions.filter(t => t.status === 'pending').length
+  const pendingCount = visibleTransactions.filter(t => t.status === 'pending').length
+
+  if (user.role === 'customer') {
+    const snapshot = getPFMSSnapshotForCustomer(user.clientId ?? 'CLT001')
+
+    return (
+      <>
+        <AdminHeader title="Spending" />
+        <main className="flex-1 overflow-auto p-6">
+          <div className="mx-auto max-w-7xl">
+            <PFMSCustomerSpending snapshot={snapshot} />
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -94,7 +114,11 @@ export default function TransactionsPage() {
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
               <p className="text-muted-foreground">
-                View and manage all client transactions.
+                {user.role === 'manager'
+                  ? 'View and manage all customer transactions.'
+                  : user.role === 'fa'
+                    ? 'View transactions for your assigned customers.'
+                    : 'Track your recent account activity.'}
               </p>
             </div>
             <Button variant="outline">
@@ -217,12 +241,16 @@ export default function TransactionsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Link
-                              href={`/admin/clients/${txn.clientId}`}
-                              className="font-medium hover:text-primary transition-colors"
-                            >
-                              {txn.clientName}
-                            </Link>
+                            {user.role === 'customer' ? (
+                              <span className="font-medium">{txn.clientName}</span>
+                            ) : (
+                              <Link
+                                href={`/admin/clients/${txn.clientId}`}
+                                className="font-medium hover:text-primary transition-colors"
+                              >
+                                {txn.clientName}
+                              </Link>
+                            )}
                           </TableCell>
                           <TableCell className="text-muted-foreground max-w-[300px] truncate">
                             {txn.description || '-'}
@@ -255,7 +283,7 @@ export default function TransactionsPage() {
 
           {/* Results count */}
           <p className="text-sm text-muted-foreground">
-            Showing {filteredTransactions.length} of {mockTransactions.length} transactions
+            Showing {filteredTransactions.length} of {visibleTransactions.length} transactions
           </p>
         </div>
       </main>

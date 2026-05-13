@@ -1,0 +1,136 @@
+import type { PFMSCustomerSnapshot } from '@/lib/types/pfms'
+
+const snapshotsByCustomerId: Record<string, PFMSCustomerSnapshot> = {
+  CLT001: {
+    customerId: 'CLT001',
+    weekLabel: 'Week of 13 May',
+    weeklyIncome: 780,
+    fixedCommitments: 360,
+    availableToSpend: 420,
+    categories: [
+      {
+        id: 'tesco-grocery',
+        label: 'Tesco Grocery',
+        weeklyBudget: 120,
+        spent: 84,
+        projectedSpend: 126,
+        essential: true,
+      },
+      {
+        id: 'food-delivery',
+        label: 'Food Delivery',
+        weeklyBudget: 55,
+        spent: 46,
+        projectedSpend: 69,
+        essential: false,
+      },
+      {
+        id: 'transport',
+        label: 'Transport',
+        weeklyBudget: 40,
+        spent: 21,
+        projectedSpend: 34,
+        essential: true,
+      },
+      {
+        id: 'subscriptions',
+        label: 'Subscriptions',
+        weeklyBudget: 22,
+        spent: 18,
+        projectedSpend: 22,
+        essential: false,
+      },
+      {
+        id: 'household',
+        label: 'Household',
+        weeklyBudget: 36,
+        spent: 20,
+        projectedSpend: 29,
+        essential: true,
+      },
+    ],
+    nextActions: [
+      {
+        id: 'act-food-delivery-cap',
+        title: 'Pause delivery for 2 evenings',
+        description: 'You are likely to exceed your food delivery cap by Friday.',
+        impact: 'Estimated save: GBP 14 this week',
+        priority: 'high',
+      },
+      {
+        id: 'act-tesco-list-mode',
+        title: 'Use Tesco list mode for next shop',
+        description: 'Your Tesco spend is on pace; keep impulse items under GBP 8.',
+        impact: 'Keeps groceries within plan',
+        priority: 'medium',
+      },
+      {
+        id: 'act-subscriptions-review',
+        title: 'Review one subscription this weekend',
+        description: 'A minor trim now gives room for essentials next week.',
+        impact: 'Potential monthly save: GBP 7',
+        priority: 'low',
+      },
+    ],
+    recentTransactions: [
+      {
+        id: 'PFMS-TXN-001',
+        merchant: 'Tesco Superstore - Croydon',
+        categoryId: 'tesco-grocery',
+        categoryLabel: 'Tesco Grocery',
+        amount: 38.5,
+        date: '2026-05-13T18:30:00',
+        channel: 'card',
+      },
+      {
+        id: 'PFMS-TXN-002',
+        merchant: 'Deliveroo',
+        categoryId: 'food-delivery',
+        categoryLabel: 'Food Delivery',
+        amount: 22.9,
+        date: '2026-05-12T20:15:00',
+        channel: 'card',
+      },
+      {
+        id: 'PFMS-TXN-003',
+        merchant: 'Tesco Express',
+        categoryId: 'tesco-grocery',
+        categoryLabel: 'Tesco Grocery',
+        amount: 16.2,
+        date: '2026-05-11T08:45:00',
+        channel: 'card',
+      },
+      {
+        id: 'PFMS-TXN-004',
+        merchant: 'Transport for London',
+        categoryId: 'transport',
+        categoryLabel: 'Transport',
+        amount: 11,
+        date: '2026-05-11T07:55:00',
+        channel: 'card',
+      },
+      {
+        id: 'PFMS-TXN-005',
+        merchant: 'Uber Eats',
+        categoryId: 'food-delivery',
+        categoryLabel: 'Food Delivery',
+        amount: 18.4,
+        date: '2026-05-10T19:20:00',
+        channel: 'card',
+      },
+      {
+        id: 'PFMS-TXN-006',
+        merchant: 'Spotify Premium',
+        categoryId: 'subscriptions',
+        categoryLabel: 'Subscriptions',
+        amount: 10.99,
+        date: '2026-05-09T09:00:00',
+        channel: 'direct-debit',
+      },
+    ],
+  },
+}
+
+export function getPFMSSnapshotForCustomer(customerId: string): PFMSCustomerSnapshot {
+  return snapshotsByCustomerId[customerId] ?? snapshotsByCustomerId.CLT001
+}

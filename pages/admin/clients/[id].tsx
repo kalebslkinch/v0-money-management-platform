@@ -1,5 +1,7 @@
 import type { GetStaticPaths, GetStaticProps } from 'next'
 import Link from 'next/link'
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
 import {
   Mail,
   Phone,
@@ -32,6 +34,8 @@ import {
 import { mockClients, getClientById } from '@/lib/data/mock-clients'
 import { getTransactionsByClientId } from '@/lib/data/mock-transactions'
 import { getPortfolioByClientId } from '@/lib/data/mock-portfolios'
+import { useUserRole } from '@/hooks/use-user-role'
+import { canAccessClient } from '@/lib/utils/role-filters'
 import { formatCurrency, formatDate, formatPercentage, getInitials, formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
 import type { Client, Transaction, Portfolio } from '@/lib/types/admin'
@@ -93,6 +97,21 @@ export const getStaticProps: GetStaticProps<ClientDetailPageProps> = async ({ pa
 }
 
 export default function ClientDetailPage({ client, transactions, portfolio }: ClientDetailPageProps) {
+  const router = useRouter()
+  const { user, isHydrated } = useUserRole()
+  const hasAccess = canAccessClient(user, client)
+
+  useEffect(() => {
+    if (!isHydrated || hasAccess) return
+    router.replace('/admin')
+  }, [hasAccess, isHydrated, router])
+
+  if (!isHydrated || !hasAccess) {
+    return null
+  }
+
+  const backLink = user.role === 'customer' ? '/admin' : '/admin/clients'
+
   return (
     <>
       <AdminHeader title={client.name} />
@@ -100,9 +119,9 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
         <div className="mx-auto max-w-7xl space-y-6">
           {/* Back Button */}
           <Button variant="ghost" size="sm" asChild className="-ml-2">
-            <Link href="/admin/clients">
+            <Link href={backLink}>
               <ArrowLeft className="mr-2 size-4" />
-              Back to Clients
+              {user.role === 'customer' ? 'Back to Dashboard' : 'Back to Clients'}
             </Link>
           </Button>
 
@@ -150,18 +169,22 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
                     <Mail className="mr-2 size-4" />
                     Contact
                   </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon">
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Edit Client</DropdownMenuItem>
-                      <DropdownMenuItem>Generate Report</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Suspend Account</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {user.role !== 'customer' && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {user.role === 'manager' && <DropdownMenuItem>Edit Client</DropdownMenuItem>}
+                        <DropdownMenuItem>Generate Report</DropdownMenuItem>
+                        {user.role === 'manager' && (
+                          <DropdownMenuItem className="text-destructive">Suspend Account</DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
             </CardContent>

@@ -1,0 +1,4 @@
+.next/dev/types/validator.ts(7,6): error TS2300: Duplicate identifier 'PagesPageConfig'.
+.next/types/validator.ts(7,6): error TS2300: Duplicate identifier 'PagesPageConfig'.
+components/admin/dashboard-grid.tsx(183,40): error TS2352: Conversion of type 'DraggableAttributes' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'DraggableAttributes'.

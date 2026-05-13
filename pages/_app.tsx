@@ -9,16 +9,21 @@ import {
   parseStoredUser,
 } from '@/lib/auth/user-context'
 import '../styles/globals.css'
+import { Lato } from 'next/font/google';
+
+const lato = Lato({ subsets: ['latin'], weight: ['400', '700'] });
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
-      <AdminSidebar />
-      <SidebarInset>
-        {children}
-      </SidebarInset>
-    </SidebarProvider>
-  )
+    <main className={`${lato.className} geist.className`}>
+      <SidebarProvider>
+        <AdminSidebar />
+        <SidebarInset>
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
+    </main>
+  );
 }
 
 export default function App({ Component, pageProps, router }: AppProps) {
@@ -36,6 +41,11 @@ export default function App({ Component, pageProps, router }: AppProps) {
 
   return (
     <>
+      <style jsx global>{`
+        html, body {
+          font-family: ${lato.style.fontFamily}, sans-serif;
+        }
+      `}</style>
       {isAdminPage ? <AdminLayout>{content}</AdminLayout> : content}
       {process.env.NODE_ENV === 'production' && <Analytics />}
     </>

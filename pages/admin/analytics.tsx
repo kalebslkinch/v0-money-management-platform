@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
@@ -12,13 +13,102 @@ import {
 } from 'recharts'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { RouteGuard } from '@/components/auth/route-guard'
+import { useUserRole } from '@/hooks/use-user-role'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { revenueData, clientGrowthData, kpiData, riskDistributionData } from '@/lib/data/mock-analytics'
+import { getVisibleClients, getVisibleTransactions } from '@/lib/utils/role-filters'
 import { formatCurrency, formatPercentage } from '@/lib/utils/format'
 import { TrendingUp, TrendingDown, Users, DollarSign, PieChart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function AnalyticsPage() {
+  const { user } = useUserRole()
+
+  const visibleClients = useMemo(() => getVisibleClients(user), [user])
+  const visibleTransactions = useMemo(() => getVisibleTransactions(user), [user])
+
+  const completedTransactions = useMemo(
+    () => visibleTransactions.filter(txn => txn.status === 'completed'),
+    [visibleTransactions],
+  )
+
+  const managerView = user.role === 'manager'
+  const totalAUM = visibleClients.reduce((sum, client) => sum + client.portfolioValue, 0)
+  const managedCashInflow = completedTransactions
+    .filter(txn => txn.type === 'deposit' || txn.type === 'dividend')
+    .reduce((sum, txn) => sum + txn.amount, 0)
+  const managedCashOutflow = completedTransactions
+    .filter(txn => txn.type === 'withdrawal' || txn.type === 'fee')
+    .reduce((sum, txn) => sum + txn.amount, 0)
+  const completionRate = visibleTransactions.length
+    ? (completedTransactions.length / visibleTransactions.length) * 100
+    : 0
+
+  const roleRiskDistribution = useMemo(() => {
+    if (managerView) return riskDistributionData
+
+    const riskCount = {
+      Low: visibleClients.filter(client => client.riskLevel === 'low').length,
+      Moderate: visibleClients.filter(client => client.riskLevel === 'moderate').length,
+      High: visibleClients.filter(client => client.riskLevel === 'high').length,
+    }
+    const totalVisibleClients = visibleClients.length || 1
+
+    return [
+      {
+        level: 'Low',
+        count: riskCount.Low,
+        percentage: Math.round((riskCount.Low / totalVisibleClients) * 100),
+      },
+      {
+        level: 'Moderate',
+        count: riskCount.Moderate,
+        percentage: Math.round((riskCount.Moderate / totalVisibleClients) * 100),
+      },
+      {
+        level: 'High',
+        count: riskCount.High,
+        percentage: Math.round((riskCount.High / totalVisibleClients) * 100),
+      },
+    ]
+  }, [managerView, visibleClients])
+
+  const roleRevenueData = useMemo(() => {
+    if (managerView) return revenueData
+
+    const janFees = completedTransactions
+      .filter(txn => txn.type === 'fee')
+      .reduce((sum, txn) => sum + txn.amount, 0)
+    const janCommissions = completedTransactions
+      .filter(txn => txn.type === 'buy' || txn.type === 'sell')
+      .reduce((sum, txn) => sum + txn.amount, 0)
+
+    return [
+      { month: 'Aug', revenue: 0, fees: 0, commissions: 0 },
+      { month: 'Sep', revenue: 0, fees: 0, commissions: 0 },
+      { month: 'Oct', revenue: 0, fees: 0, commissions: 0 },
+      { month: 'Nov', revenue: 0, fees: 0, commissions: 0 },
+      { month: 'Dec', revenue: 0, fees: 0, commissions: 0 },
+      { month: 'Jan', revenue: janFees + janCommissions, fees: janFees, commissions: janCommissions },
+    ]
+  }, [completedTransactions, managerView])
+
+  const roleGrowthData = useMemo(() => {
+    if (managerView) return clientGrowthData
+
+    const baseAUM = totalAUM
+    const clientCount = visibleClients.length
+
+    return [
+      { month: 'Aug', clients: Math.max(0, clientCount - 2), aum: Math.round(baseAUM * 0.78) },
+      { month: 'Sep', clients: Math.max(0, clientCount - 2), aum: Math.round(baseAUM * 0.82) },
+      { month: 'Oct', clients: Math.max(0, clientCount - 1), aum: Math.round(baseAUM * 0.86) },
+      { month: 'Nov', clients: Math.max(0, clientCount - 1), aum: Math.round(baseAUM * 0.9) },
+      { month: 'Dec', clients: clientCount, aum: Math.round(baseAUM * 0.95) },
+      { month: 'Jan', clients: clientCount, aum: baseAUM },
+    ]
+  }, [clientGrowthData, managerView, totalAUM, visibleClients.length])
+
   return (
     <RouteGuard allowedRoles={['manager', 'fa']}>
       <AdminHeader title="Analytics" />
@@ -28,7 +118,9 @@ export default function AnalyticsPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
             <p className="text-muted-foreground">
-              Detailed insights into your business performance and metrics.
+              {managerView
+                ? 'Detailed insights into overall business performance and metrics.'
+                : 'Insights for your assigned customers and managed activity.'}
             </p>
           </div>
 
@@ -41,9 +133,13 @@ export default function AnalyticsPage() {
                     <DollarSign className="size-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'Total Revenue' : 'Managed Cash Inflow'}
+                    </p>
                     <p className="text-xl font-bold tabular-nums">
-                      {formatCurrency(revenueData.reduce((sum, d) => sum + d.revenue, 0))}
+                      {managerView
+                        ? formatCurrency(revenueData.reduce((sum, d) => sum + d.revenue, 0))
+                        : formatCurrency(managedCashInflow)}
                     </p>
                   </div>
                 </div>
@@ -56,9 +152,11 @@ export default function AnalyticsPage() {
                     <TrendingUp className="size-5 text-success" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Avg. Return</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'Avg. Return' : 'Completion Rate'}
+                    </p>
                     <p className="text-xl font-bold tabular-nums text-success">
-                      {formatPercentage(kpiData.avgReturn)}
+                      {managerView ? formatPercentage(kpiData.avgReturn) : formatPercentage(completionRate)}
                     </p>
                   </div>
                 </div>
@@ -71,9 +169,11 @@ export default function AnalyticsPage() {
                     <Users className="size-5 text-chart-2" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Client Growth</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'Client Growth' : 'Assigned Customers'}
+                    </p>
                     <p className="text-xl font-bold tabular-nums">
-                      {formatPercentage(kpiData.clientsChange)}
+                      {managerView ? formatPercentage(kpiData.clientsChange) : visibleClients.length}
                     </p>
                   </div>
                 </div>
@@ -86,9 +186,11 @@ export default function AnalyticsPage() {
                     <PieChart className="size-5 text-warning" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">AUM Growth</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'AUM Growth' : 'Managed AUM'}
+                    </p>
                     <p className="text-xl font-bold tabular-nums">
-                      {formatPercentage(kpiData.aumChange)}
+                      {managerView ? formatPercentage(kpiData.aumChange) : formatCurrency(totalAUM)}
                     </p>
                   </div>
                 </div>
@@ -102,12 +204,14 @@ export default function AnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Revenue Breakdown</CardTitle>
-                <CardDescription>Monthly revenue by source</CardDescription>
+                <CardDescription>
+                  {managerView ? 'Monthly revenue by source' : 'Managed activity totals for assigned customers'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={revenueData}>
+                    <BarChart data={roleRevenueData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
                       <XAxis
                         dataKey="month"
@@ -152,12 +256,14 @@ export default function AnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Growth Trends</CardTitle>
-                <CardDescription>Client count and AUM over time</CardDescription>
+                <CardDescription>
+                  {managerView ? 'Client count and AUM over time' : 'Assigned customer count and managed value trend'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={clientGrowthData}>
+                    <LineChart data={roleGrowthData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
                       <XAxis
                         dataKey="month"
@@ -230,54 +336,80 @@ export default function AnalyticsPage() {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Monthly Performance Summary</CardTitle>
-                <CardDescription>Key metrics compared month-over-month</CardDescription>
+                <CardDescription>
+                  {managerView
+                    ? 'Key metrics compared month-over-month'
+                    : 'Assigned customer activity and cashflow signals'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-1 p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">Revenue Growth</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'Revenue Growth' : 'Inflow vs Outflow'}
+                    </p>
                     <p className={cn(
                       'text-2xl font-bold flex items-center gap-1',
-                      kpiData.revenueChange >= 0 ? 'text-success' : 'text-destructive'
+                      managerView
+                        ? (kpiData.revenueChange >= 0 ? 'text-success' : 'text-destructive')
+                        : (managedCashInflow - managedCashOutflow >= 0 ? 'text-success' : 'text-destructive')
                     )}>
-                      {kpiData.revenueChange >= 0 ? (
+                      {(managerView ? kpiData.revenueChange : managedCashInflow - managedCashOutflow) >= 0 ? (
                         <TrendingUp className="size-5" />
                       ) : (
                         <TrendingDown className="size-5" />
                       )}
-                      {formatPercentage(kpiData.revenueChange)}
+                      {managerView
+                        ? formatPercentage(kpiData.revenueChange)
+                        : formatCurrency(managedCashInflow - managedCashOutflow)}
                     </p>
-                    <p className="text-xs text-muted-foreground">vs previous month</p>
+                    <p className="text-xs text-muted-foreground">
+                      {managerView ? 'vs previous month' : 'net completed activity'}
+                    </p>
                   </div>
                   <div className="space-y-1 p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">AUM Growth</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'AUM Growth' : 'Completed Transactions'}
+                    </p>
                     <p className={cn(
                       'text-2xl font-bold flex items-center gap-1',
-                      kpiData.aumChange >= 0 ? 'text-success' : 'text-destructive'
+                      managerView ? (kpiData.aumChange >= 0 ? 'text-success' : 'text-destructive') : 'text-primary'
                     )}>
-                      {kpiData.aumChange >= 0 ? (
+                      {(managerView ? kpiData.aumChange : completedTransactions.length) >= 0 ? (
                         <TrendingUp className="size-5" />
                       ) : (
                         <TrendingDown className="size-5" />
                       )}
-                      {formatPercentage(kpiData.aumChange)}
+                      {managerView ? formatPercentage(kpiData.aumChange) : completedTransactions.length}
                     </p>
-                    <p className="text-xs text-muted-foreground">vs previous month</p>
+                    <p className="text-xs text-muted-foreground">
+                      {managerView ? 'vs previous month' : 'successful entries in visible scope'}
+                    </p>
                   </div>
                   <div className="space-y-1 p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">Return Improvement</p>
+                    <p className="text-sm text-muted-foreground">
+                      {managerView ? 'Return Improvement' : 'Average Ticket Size'}
+                    </p>
                     <p className={cn(
                       'text-2xl font-bold flex items-center gap-1',
-                      kpiData.returnChange >= 0 ? 'text-success' : 'text-destructive'
+                      managerView ? (kpiData.returnChange >= 0 ? 'text-success' : 'text-destructive') : 'text-chart-2'
                     )}>
-                      {kpiData.returnChange >= 0 ? (
+                      {(managerView ? kpiData.returnChange : completedTransactions.length) >= 0 ? (
                         <TrendingUp className="size-5" />
                       ) : (
                         <TrendingDown className="size-5" />
                       )}
-                      {formatPercentage(kpiData.returnChange)}
+                      {managerView
+                        ? formatPercentage(kpiData.returnChange)
+                        : formatCurrency(
+                            completedTransactions.length
+                              ? completedTransactions.reduce((sum, txn) => sum + txn.amount, 0) / completedTransactions.length
+                              : 0,
+                          )}
                     </p>
-                    <p className="text-xs text-muted-foreground">vs previous month</p>
+                    <p className="text-xs text-muted-foreground">
+                      {managerView ? 'vs previous month' : 'mean completed transaction value'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -286,11 +418,13 @@ export default function AnalyticsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Risk Distribution</CardTitle>
-                <CardDescription>Clients by risk profile</CardDescription>
+                <CardDescription>
+                  {managerView ? 'Clients by risk profile' : 'Assigned customers by risk profile'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {riskDistributionData.map((risk) => (
+                  {roleRiskDistribution.map((risk) => (
                     <div key={risk.level} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium capitalize">{risk.level} Risk</span>
