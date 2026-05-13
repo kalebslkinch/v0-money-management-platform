@@ -15,9 +15,11 @@ import {
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
+  verticalListSortingStrategy,
+  useSortable,
   arrayMove,
 } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { WidgetWrapper } from '@/components/admin/widget-wrapper'
 import { renderWidget, WIDGET_REGISTRY } from '@/lib/dashboard/widget-registry'
 import { WIDGET_COLUMN_SPANS } from '@/lib/types/dashboard'
@@ -90,49 +92,102 @@ export function DashboardGrid({ layout }: DashboardGridProps) {
     >
       <SortableContext
         items={sortedWidgets.map(w => w.instanceId)}
-        strategy={rectSortingStrategy}
+        strategy={verticalListSortingStrategy}
       >
         {/*
-          12-column grid. Widgets declare their own column span via size.
-          On smaller screens everything collapses to full width.
+          12-column grid. Each cell is the sortable element — setNodeRef lives
+          on the grid cell div so dnd-kit measures and transforms the element
+          that CSS Grid is actually positioning. WidgetWrapper is presentational.
         */}
-        <div className="grid grid-cols-12 gap-6 auto-rows-auto">
+        <div className="grid grid-cols-12 gap-6">
           {sortedWidgets.map(widget => {
-            const colSpan = WIDGET_COLUMN_SPANS[widget.size]
             const isAutoPromoted = autoPromotedWidgetIds.has(widget.widgetId)
-
             return (
-              <div
+              <SortableWidgetCell
                 key={widget.instanceId}
-                className={`col-span-12 lg:col-span-${colSpan}`}
-                style={{ gridColumn: `span ${colSpan} / span ${colSpan}` }}
-              >
-                <WidgetWrapper
-                  instanceId={widget.instanceId}
-                  widgetId={widget.widgetId}
-                  size={widget.size}
-                  pinned={widget.pinned}
-                  autoPromoted={isAutoPromoted}
-                  isEditMode={editMode}
-                  onSizeChange={setWidgetSize}
-                  onTogglePin={toggleWidgetPin}
-                  onRemove={removeWidget}
-                >
-                  {renderWidget(widget.widgetId, widget.size)}
-                </WidgetWrapper>
-              </div>
+                widget={widget}
+                isAutoPromoted={isAutoPromoted}
+                isEditMode={editMode}
+                onSizeChange={setWidgetSize}
+                onTogglePin={toggleWidgetPin}
+                onRemove={removeWidget}
+              />
             )
           })}
         </div>
       </SortableContext>
 
-      {/* Drag overlay — renders a ghost of the widget being dragged */}
-      <DragOverlay>
-        {activeWidget ? (
-          <DragGhost widget={activeWidget} />
-        ) : null}
+      {/* Drag overlay — polished ghost card, sized to the dragged widget */}
+      <DragOverlay dropAnimation={{ duration: 180, easing: 'ease' }}>
+        {activeWidget ? <DragGhost widget={activeWidget} /> : null}
       </DragOverlay>
     </DndContext>
+  )
+}
+
+// ─── SortableWidgetCell ────────────────────────────────────────────────────────────
+
+/**
+ * Owns useSortable for a single widget. Applies setNodeRef + CSS transform
+ * directly to the grid cell div — the element CSS Grid actually positions.
+ * Passes drag handle props down to WidgetWrapper (presentational only).
+ */
+interface SortableWidgetCellProps {
+  widget: DashboardWidgetInstance
+  isAutoPromoted: boolean
+  isEditMode: boolean
+  onSizeChange: (instanceId: string, size: DashboardWidgetInstance['size']) => void
+  onTogglePin: (instanceId: string) => void
+  onRemove: (instanceId: string) => void
+}
+
+function SortableWidgetCell({
+  widget,
+  isAutoPromoted,
+  isEditMode,
+  onSizeChange,
+  onTogglePin,
+  onRemove,
+}: SortableWidgetCellProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: widget.instanceId, disabled: !isEditMode })
+
+  const colSpan = WIDGET_COLUMN_SPANS[widget.size]
+
+  const cellStyle: React.CSSProperties = {
+    gridColumn: `span ${colSpan} / span ${colSpan}`,
+    transform: CSS.Transform.toString(transform),
+    transition,
+    // Keep the grid cell in flow so other cells don't collapse into its space
+    opacity: isDragging ? 0 : 1,
+    zIndex: isDragging ? 50 : 'auto',
+    position: 'relative',
+  }
+
+  return (
+    <div ref={setNodeRef} style={cellStyle}>
+      <WidgetWrapper
+        instanceId={widget.instanceId}
+        widgetId={widget.widgetId}
+        size={widget.size}
+        pinned={widget.pinned}
+        autoPromoted={isAutoPromoted}
+        isEditMode={isEditMode}
+        isDragging={isDragging}
+        dragHandleProps={{ attributes: attributes as Record<string, unknown>, listeners }}
+        onSizeChange={onSizeChange}
+        onTogglePin={onTogglePin}
+        onRemove={onRemove}
+      >
+        {renderWidget(widget.widgetId, widget.size)}
+      </WidgetWrapper>
+    </div>
   )
 }
 

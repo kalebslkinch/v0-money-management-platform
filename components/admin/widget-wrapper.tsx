@@ -1,8 +1,6 @@
 'use client'
 
-import React, { useRef } from 'react'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import React from 'react'
 import {
   GripVertical,
   Pin,
@@ -27,6 +25,11 @@ import { WIDGET_REGISTRY } from '@/lib/dashboard/widget-registry'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
+/** Props passed down from SortableWidgetCell — the drag behaviour owner */
+export interface DragHandleProps {
+  attributes: Record<string, unknown>
+  listeners: Record<string, unknown> | undefined
+}
 interface WidgetWrapperProps {
   instanceId: string
   widgetId: WidgetId
@@ -34,6 +37,8 @@ interface WidgetWrapperProps {
   pinned: boolean
   autoPromoted: boolean
   isEditMode: boolean
+  isDragging: boolean
+  dragHandleProps: DragHandleProps
   onSizeChange: (instanceId: string, size: WidgetSize) => void
   onTogglePin: (instanceId: string) => void
   onRemove: (instanceId: string) => void
@@ -49,37 +54,20 @@ export function WidgetWrapper({
   pinned,
   autoPromoted,
   isEditMode,
+  isDragging,
+  dragHandleProps,
   onSizeChange,
   onTogglePin,
   onRemove,
   children,
 }: WidgetWrapperProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: instanceId, disabled: !isEditMode })
-
   const config = WIDGET_REGISTRY[widgetId]
-  const canBePinned = pinned !== undefined // all widgets are pinnable
   const minSize = config.minSize
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 50 : 'auto',
-  }
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
       className={cn(
-        'group relative flex flex-col rounded-2xl bg-card border transition-all duration-200',
+        'group relative flex flex-col rounded-2xl bg-card border transition-all duration-200 h-full',
         // Normal border
         !autoPromoted && 'border-border/50',
         // Auto-promoted: amber left accent
@@ -90,17 +78,17 @@ export function WidgetWrapper({
         pinned && autoPromoted && 'border-amber-500/40 border-l-4 border-l-amber-500 shadow-amber-500/10 shadow-md',
         // Edit mode ring
         isEditMode && 'ring-1 ring-primary/20 hover:ring-primary/40',
-        // Dragging ghost
-        isDragging && 'shadow-2xl',
+        // Dragging fade — applied to the card content, not the grid cell
+        isDragging && 'opacity-40',
       )}
     >
       {/* ── Edit Mode Header Bar ── */}
       {isEditMode && (
         <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border/40 bg-accent/30 rounded-t-2xl">
-          {/* Drag handle */}
+          {/* Drag handle — listeners live here, bound from SortableWidgetCell */}
           <div
-            {...attributes}
-            {...listeners}
+            {...dragHandleProps.attributes}
+            {...dragHandleProps.listeners}
             className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing select-none text-muted-foreground hover:text-foreground transition-colors"
             title="Drag to reorder"
           >
@@ -145,11 +133,10 @@ export function WidgetWrapper({
             </DropdownMenu>
 
             {/* Pin toggle */}
-            {canBePinned && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
                   'size-7 rounded-lg',
                   pinned
                     ? 'text-primary hover:text-muted-foreground'
@@ -160,7 +147,6 @@ export function WidgetWrapper({
               >
                 {pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
               </Button>
-            )}
 
             {/* Remove */}
             <Button
