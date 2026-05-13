@@ -96,6 +96,7 @@ export function ClientTable({
 
   return (
     <div className="space-y-6">
+
       {/* Search + Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -265,6 +266,7 @@ export function ClientTable({
       <p className="text-xs text-muted-foreground">
         Showing {filteredClients.length} of {clients.length} client{clients.length !== 1 ? 's' : ''}
       </p>
+
     </div>
   )
 }

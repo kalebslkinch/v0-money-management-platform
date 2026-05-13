@@ -140,7 +140,9 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
   }
 
   // ...existing code for manager/fa...
+
   const pfmsSnapshot = getPFMSSnapshotForCustomer(client.id)
+
 
   return (
     <>
@@ -154,6 +156,7 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
               Back to Clients
             </Link>
           </Button>
+
 
           {/* Client Header */}
           <Card className="rounded-2xl border-border/50">
