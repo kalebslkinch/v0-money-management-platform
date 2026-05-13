@@ -16,7 +16,7 @@ export function StatsCards({ data }: StatsCardsProps) {
       value: formatCurrency(data.totalAUM, true),
       change: data.aumChange,
       icon: Wallet,
-      color: 'from-primary to-chart-2',
+      color: 'from-primary to-primary/60',
       bgGlow: 'bg-primary/20',
     },
     {

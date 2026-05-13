@@ -122,12 +122,12 @@ export function AdminSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
               <Link href="/admin" className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-2 shadow-lg glow-primary">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60 shadow-lg glow-primary">
                   <Zap className="size-5 text-primary-foreground" />
                 </div>
                 <div className="flex flex-col leading-none">
                   <span className="text-lg font-bold tracking-tight">Alpha Finance</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Wealth Platform</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Personal Finance</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -171,7 +171,7 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         {/* Quick Stats Mini Card */}
-        <div className="mt-6 mx-1 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-chart-2/5 border border-primary/10">
+        <div className="mt-6 mx-1 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="size-4 text-primary" />
             <span className="text-xs font-medium text-muted-foreground">Weekly Budget Health</span>
@@ -187,7 +187,7 @@ export function AdminSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" className="hover:bg-transparent">
                 <Avatar className="size-9 ring-2 ring-primary/20">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-chart-2 text-primary-foreground text-xs font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground text-xs font-semibold">
                     {effectiveName
                       .split(' ')
                       .map(part => part[0])

@@ -72,6 +72,28 @@ export interface Case {
   createdBy: string
 }
 
+// Change Request Types
+export type ChangeRequestStatus = 'pending' | 'approved' | 'rejected'
+
+export interface ChangeRequestFieldChange {
+  field: keyof Pick<Client, 'name' | 'email' | 'phone' | 'riskLevel' | 'status'>
+  label: string
+  from: string
+  to: string
+}
+
+export interface ChangeRequest {
+  id: string
+  clientId: string
+  clientName: string
+  advisorId: string
+  advisorName: string
+  requestedAt: string
+  status: ChangeRequestStatus
+  note: string
+  changes: ChangeRequestFieldChange[]
+}
+
 // Transaction Types
 export type TransactionType = 'deposit' | 'withdrawal' | 'buy' | 'sell' | 'fee' | 'dividend'
 export type TransactionStatus = 'completed' | 'pending' | 'failed'

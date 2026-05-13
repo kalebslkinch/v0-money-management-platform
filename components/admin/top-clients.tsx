@@ -46,7 +46,7 @@ export function TopClients({ clients }: TopClientsProps) {
               </div>
               
               <Avatar className="size-10 ring-2 ring-border">
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-chart-2/20 text-primary text-xs font-semibold">
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs font-semibold">
                   {getInitials(client.name)}
                 </AvatarFallback>
               </Avatar>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, MoreHorizontal, Eye, Mail, ArrowUpDown, Filter, Users } from 'lucide-react'
+import { Search, MoreHorizontal, Eye, Mail, ArrowUpDown, Filter, Users, Pencil, Trash2, ClipboardEdit } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -27,6 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils/format'
 import type { Client } from '@/lib/types/admin'
 import { cn } from '@/lib/utils'
@@ -35,6 +45,9 @@ interface ClientTableProps {
   clients: Client[]
   showAdvisor?: boolean
   allowActions?: boolean
+  onEdit?: (client: Client) => void
+  onDelete?: (clientId: string) => void
+  onRequestChange?: (client: Client) => void
 }
 
 const statusStyles = {
@@ -53,10 +66,14 @@ export function ClientTable({
   clients,
   showAdvisor = true,
   allowActions = true,
+  onEdit,
+  onDelete,
+  onRequestChange,
 }: ClientTableProps) {
   // Hide portfolio, risk, advisor columns for customer role
   const isCustomer = !showAdvisor && !allowActions
   const [search, setSearch] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [riskFilter, setRiskFilter] = useState<string>('all')
   const [sortField, setSortField] = useState<'name' | 'portfolioValue' | 'lastActivity'>('name')
@@ -251,6 +268,27 @@ export function ClientTable({
                               Send Email
                             </a>
                           </DropdownMenuItem>
+                          {onRequestChange && (
+                            <DropdownMenuItem onClick={() => onRequestChange(client)}>
+                              <ClipboardEdit className="mr-2 size-4" />
+                              Request Change
+                            </DropdownMenuItem>
+                          )}
+                          {onEdit && (
+                            <DropdownMenuItem onClick={() => onEdit(client)}>
+                              <Pencil className="mr-2 size-4" />
+                              Edit Client
+                            </DropdownMenuItem>
+                          )}
+                          {onDelete && (
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteTarget(client)}
+                            >
+                              <Trash2 className="mr-2 size-4" />
+                              Remove Client
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -266,6 +304,30 @@ export function ClientTable({
       <p className="text-xs text-muted-foreground">
         Showing {filteredClients.length} of {clients.length} client{clients.length !== 1 ? 's' : ''}
       </p>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={open => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {deleteTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove {deleteTarget?.name} from the client list. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) onDelete?.(deleteTarget.id)
+                setDeleteTarget(null)
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   )

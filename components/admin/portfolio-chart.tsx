@@ -17,7 +17,7 @@ export function PortfolioChart({ data }: PortfolioChartProps) {
     <div className="col-span-1 lg:col-span-2 rounded-2xl bg-card border border-border/50 overflow-hidden">
       {/* Header with gradient accent */}
       <div className="relative p-6 pb-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-chart-2/5" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
         <div className="relative flex items-start justify-between">
           <div>
             <h3 className="text-lg font-semibold mb-1">Portfolio Performance</h3>
@@ -124,7 +124,7 @@ export function PortfolioChart({ data }: PortfolioChartProps) {
         {/* Legend */}
         <div className="mt-4 flex items-center justify-center gap-8 text-sm">
           <div className="flex items-center gap-2">
-            <div className="size-3 rounded-full bg-gradient-to-r from-primary to-chart-2" />
+            <div className="size-3 rounded-full bg-primary" />
             <span className="text-muted-foreground">Total AUM</span>
           </div>
           <div className="flex items-center gap-2">

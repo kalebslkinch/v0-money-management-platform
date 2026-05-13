@@ -1,17 +1,29 @@
+import { useState } from 'react'
 import { Plus, Users, TrendingUp, Wallet } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { ClientTable } from '@/components/admin/client-table'
+import { EditClientDialog } from '@/components/admin/edit-client-dialog'
+import { RequestChangeDialog } from '@/components/admin/request-change-dialog'
 import { Button } from '@/components/ui/button'
 import { RouteGuard } from '@/components/auth/route-guard'
 import { useUserRole } from '@/hooks/use-user-role'
 import { getVisibleClients } from '@/lib/utils/role-filters'
 import { formatCurrency } from '@/lib/utils/format'
+import type { Client } from '@/lib/types/admin'
 
 import { PFMSCustomerDashboard } from '@/components/admin/pfms-customer-dashboard'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 
 export default function ClientsPage() {
   const { user } = useUserRole()
+  const [clients, setClients] = useState<Client[]>(() => getVisibleClients(user))
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingClient, setEditingClient] = useState<Client | null>(null)
+
+  const isManager = user.role === 'manager'
+  const isFA = user.role === 'fa'
+  const [requestTarget, setRequestTarget] = useState<Client | null>(null)
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false)
 
   if (user.role === 'customer') {
     const snapshot = getPFMSSnapshotForCustomer(user.clientId ?? 'CLT001')
@@ -29,7 +41,7 @@ export default function ClientsPage() {
     )
   }
 
-  const visibleClients = getVisibleClients(user)
+  const visibleClients = clients
   const totalClients = visibleClients.length
   const activeClients = visibleClients.filter(c => c.status === 'active').length
   const weeklyBudgetTotal = visibleClients.reduce((sum, client) => {
@@ -54,7 +66,10 @@ export default function ClientsPage() {
                 </p>
               </div>
               {user.role === 'manager' && (
-                <Button className="rounded-xl h-11 px-5 bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 transition-opacity">
+                <Button
+                  className="rounded-xl h-11 px-5 bg-primary hover:bg-primary/90 transition-opacity"
+                  onClick={() => { setEditingClient(null); setDialogOpen(true) }}
+                >
                   <Plus className="mr-2 size-4" />
                   Add Client
                 </Button>
@@ -97,10 +112,37 @@ export default function ClientsPage() {
               clients={visibleClients}
               showAdvisor={user.role === 'manager'}
               allowActions
+              onEdit={isManager ? (client) => { setEditingClient(client); setDialogOpen(true) } : undefined}
+              onDelete={isManager ? (id) => setClients(prev => prev.filter(c => c.id !== id)) : undefined}
+              onRequestChange={isFA ? (client) => { setRequestTarget(client); setRequestDialogOpen(true) } : undefined}
             />
           </div>
         </div>
       </main>
+
+      {isManager && (
+        <EditClientDialog
+          client={editingClient}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          onSave={(saved) => {
+            setClients(prev => {
+              const idx = prev.findIndex(c => c.id === saved.id)
+              return idx >= 0
+                ? prev.map(c => (c.id === saved.id ? saved : c))
+                : [...prev, saved]
+            })
+          }}
+        />
+      )}
+      {isFA && requestTarget && (
+        <RequestChangeDialog
+          client={requestTarget}
+          user={user}
+          open={requestDialogOpen}
+          onOpenChange={setRequestDialogOpen}
+        />
+      )}
     </RouteGuard>
   )
 }

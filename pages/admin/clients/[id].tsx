@@ -1,6 +1,6 @@
 import type { GetStaticPaths, GetStaticProps } from 'next'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import {
   Mail,
@@ -10,6 +10,7 @@ import {
   TrendingDown,
   ArrowLeft,
   MoreHorizontal,
+  ClipboardEdit,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +35,8 @@ import {
 import { mockClients, getClientById } from '@/lib/data/mock-clients'
 import { getTransactionsByClientId } from '@/lib/data/mock-transactions'
 import { getPortfolioByClientId } from '@/lib/data/mock-portfolios'
+import { getPendingRequestsByClientId, updateChangeRequestStatus } from '@/lib/data/mock-change-requests'
+import { RequestChangeDialog } from '@/components/admin/request-change-dialog'
 import { useUserRole } from '@/hooks/use-user-role'
 import { canAccessClient } from '@/lib/utils/role-filters'
 import { formatCurrency, formatDate, formatPercentage, getInitials, formatDateTime } from '@/lib/utils/format'
@@ -143,6 +146,12 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
 
   const pfmsSnapshot = getPFMSSnapshotForCustomer(client.id)
 
+  const [localClient, setLocalClient] = useState(client)
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false)
+  const [pendingRequests, setPendingRequests] = useState(() => getPendingRequestsByClientId(client.id))
+
+  const refreshRequests = () => setPendingRequests(getPendingRequestsByClientId(client.id))
+
 
   return (
     <>
@@ -205,10 +214,21 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
                   </div>
                   {user.role === 'manager' && (
                     <p className="mt-3 text-sm text-muted-foreground">
-                      Advisor: <span className="font-medium text-foreground">{client.advisor}</span>
+                      Advisor: <span className="font-medium text-foreground">{localClient.advisor}</span>
                     </p>
                   )}
                 </div>
+                {user.role === 'fa' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 rounded-xl gap-2"
+                    onClick={() => setRequestDialogOpen(true)}
+                  >
+                    <ClipboardEdit className="size-4" />
+                    Request Change
+                  </Button>
+                )}
                 {user.role === 'manager' && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -375,8 +395,90 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
           {/* PFMS Budget & Spending */}
           <PFMSCustomerBudgets snapshot={pfmsSnapshot} />
           <PFMSCustomerSpending snapshot={pfmsSnapshot} />
+
+          {/* Pending Change Requests — manager only */}
+          {user.role === 'manager' && pendingRequests.length > 0 && (
+            <Card className="rounded-2xl border-warning/30 bg-warning/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-warning">
+                  <ClipboardEdit className="size-5" />
+                  Pending Change Requests ({pendingRequests.length})
+                </CardTitle>
+                <CardDescription>
+                  Submitted by advisors — review and approve or reject each request.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingRequests.map(req => (
+                  <div key={req.id} className="rounded-xl border border-border/50 bg-card p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">{req.advisorName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(req.requestedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                        {req.note && (
+                          <p className="text-sm text-muted-foreground mt-1 italic">&ldquo;{req.note}&rdquo;</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={() => {
+                            updateChangeRequestStatus(req.id, 'rejected')
+                            refreshRequests()
+                          }}
+                        >
+                          Reject
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="rounded-lg bg-success text-success-foreground hover:bg-success/90"
+                          onClick={() => {
+                            // Apply changes to localClient
+                            const updates: Partial<typeof localClient> = {}
+                            req.changes.forEach(c => {
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              ;(updates as any)[c.field] = c.to
+                            })
+                            setLocalClient(prev => ({ ...prev, ...updates }))
+                            updateChangeRequestStatus(req.id, 'approved')
+                            refreshRequests()
+                          }}
+                        >
+                          Approve
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      {req.changes.map(c => (
+                        <div key={c.field} className="flex items-center gap-2 text-xs">
+                          <span className="font-medium text-muted-foreground">{c.label}:</span>
+                          <span className="line-through text-muted-foreground">{c.from}</span>
+                          <span className="text-muted-foreground">→</span>
+                          <span className="font-medium">{c.to}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
+
+      {/* FA: Request Change Dialog */}
+      {user.role === 'fa' && (
+        <RequestChangeDialog
+          client={localClient}
+          user={user}
+          open={requestDialogOpen}
+          onOpenChange={setRequestDialogOpen}
+        />
+      )}
     </>
   )
 }
