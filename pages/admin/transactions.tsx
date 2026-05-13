@@ -61,6 +61,15 @@ const statusColors = {
   failed: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
+const transactionLabels = {
+  deposit: 'Income In',
+  withdrawal: 'Bill Payment',
+  buy: 'Card Spend',
+  sell: 'Refund',
+  fee: 'Bank Fee',
+  dividend: 'Cashback',
+}
+
 export default function TransactionsPage() {
   const { user } = useUserRole()
   const [search, setSearch] = useState('')
@@ -115,9 +124,9 @@ export default function TransactionsPage() {
               <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
               <p className="text-muted-foreground">
                 {user.role === 'manager'
-                  ? 'View and manage all customer transactions.'
+                  ? 'View and monitor all customer spending activity.'
                   : user.role === 'fa'
-                    ? 'View transactions for your assigned customers.'
+                    ? 'View spending activity for your assigned customers.'
                     : 'Track your recent account activity.'}
               </p>
             </div>
@@ -147,7 +156,7 @@ export default function TransactionsPage() {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Fees Collected</p>
+                <p className="text-sm text-muted-foreground">Bank Fees</p>
                 <p className="text-2xl font-bold tabular-nums">
                   {formatCurrency(totalFees)}
                 </p>
@@ -157,7 +166,7 @@ export default function TransactionsPage() {
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold text-warning tabular-nums">
-                  {pendingCount} transactions
+                  {pendingCount} items
                 </p>
               </CardContent>
             </Card>
@@ -168,7 +177,7 @@ export default function TransactionsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by client, asset, or description..."
+                placeholder="Search by customer or description..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -181,12 +190,12 @@ export default function TransactionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="deposit">Deposit</SelectItem>
-                  <SelectItem value="withdrawal">Withdrawal</SelectItem>
-                  <SelectItem value="buy">Buy</SelectItem>
-                  <SelectItem value="sell">Sell</SelectItem>
-                  <SelectItem value="fee">Fee</SelectItem>
-                  <SelectItem value="dividend">Dividend</SelectItem>
+                  <SelectItem value="deposit">Income In</SelectItem>
+                  <SelectItem value="withdrawal">Bill Payment</SelectItem>
+                  <SelectItem value="buy">Card Spend</SelectItem>
+                  <SelectItem value="sell">Refund</SelectItem>
+                  <SelectItem value="fee">Bank Fee</SelectItem>
+                  <SelectItem value="dividend">Cashback</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -210,7 +219,7 @@ export default function TransactionsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Type</TableHead>
-                    <TableHead>Client</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -237,7 +246,7 @@ export default function TransactionsPage() {
                               )}>
                                 <Icon className="size-4" />
                               </div>
-                              <span className="font-medium capitalize">{txn.type}</span>
+                              <span className="font-medium">{transactionLabels[txn.type]}</span>
                             </div>
                           </TableCell>
                           <TableCell>

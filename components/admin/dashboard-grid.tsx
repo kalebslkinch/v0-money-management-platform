@@ -180,7 +180,7 @@ function SortableWidgetCell({
         autoPromoted={isAutoPromoted}
         isEditMode={isEditMode}
         isDragging={isDragging}
-        dragHandleProps={{ attributes: attributes as Record<string, unknown>, listeners }}
+        dragHandleProps={{ attributes: attributes as unknown as Record<string, unknown>, listeners }}
         onSizeChange={onSizeChange}
         onTogglePin={onTogglePin}
         onRemove={onRemove}
