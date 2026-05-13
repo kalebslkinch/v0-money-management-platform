@@ -13,8 +13,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.005 270);
 
-  /* Vibrant cyan/teal primary */
-  --primary: oklch(0.55 0.18 195);
+  /* Alpha Finance navy blue */
+  --primary: oklch(0.41 0.115 252);
   --primary-foreground: oklch(0.98 0 0);
 
   /* Muted backgrounds */
@@ -33,7 +33,7 @@
 
   --border: oklch(0.88 0.005 270);
   --input: oklch(0.92 0.003 270);
-  --ring: oklch(0.55 0.18 195);
+  --ring: oklch(0.41 0.115 252);
 
   /* Vibrant chart colors */
   --chart-1: oklch(0.55 0.18 195);  /* Cyan */
@@ -47,12 +47,12 @@
   /* Sidebar */
   --sidebar: oklch(0.96 0.003 270);
   --sidebar-foreground: oklch(0.13 0.005 270);
-  --sidebar-primary: oklch(0.55 0.18 195);
+  --sidebar-primary: oklch(0.41 0.115 252);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.91 0.005 270);
   --sidebar-accent-foreground: oklch(0.13 0.005 270);
   --sidebar-border: oklch(0.88 0.005 270);
-  --sidebar-ring: oklch(0.55 0.18 195);
+  --sidebar-ring: oklch(0.41 0.115 252);
 
   /* Finance semantic colors */
   --success: oklch(0.55 0.19 145);
@@ -130,7 +130,7 @@
   }
   
   .glow-primary {
-    box-shadow: 0 0 20px oklch(0.55 0.18 195 / 0.25);
+    box-shadow: 0 0 20px oklch(0.41 0.115 252 / 0.25);
   }
   
   .glow-success {

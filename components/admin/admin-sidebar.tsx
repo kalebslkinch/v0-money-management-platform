@@ -126,8 +126,8 @@ export function AdminSidebar() {
                   <Zap className="size-5 text-primary-foreground" />
                 </div>
                 <div className="flex flex-col leading-none">
-                  <span className="text-lg font-bold tracking-tight">PMFS</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Personal Finance</span>
+                  <span className="text-lg font-bold tracking-tight">Alpha Finance</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Wealth Platform</span>
                 </div>
               </Link>
             </SidebarMenuButton>
