@@ -12,6 +12,7 @@ export const mockClients: Client[] = [
     joinedDate: '2021-03-15',
     lastActivity: '2024-01-15',
     advisor: 'James Wilson',
+    advisorId: 'ADV001',
   },
   {
     id: 'CLT002',
@@ -24,6 +25,7 @@ export const mockClients: Client[] = [
     joinedDate: '2019-08-22',
     lastActivity: '2024-01-14',
     advisor: 'Emily Rodriguez',
+    advisorId: 'ADV002',
   },
   {
     id: 'CLT003',
@@ -36,6 +38,7 @@ export const mockClients: Client[] = [
     joinedDate: '2022-01-10',
     lastActivity: '2024-01-13',
     advisor: 'James Wilson',
+    advisorId: 'ADV001',
   },
   {
     id: 'CLT004',
@@ -48,6 +51,7 @@ export const mockClients: Client[] = [
     joinedDate: '2020-06-05',
     lastActivity: '2024-01-12',
     advisor: 'Emily Rodriguez',
+    advisorId: 'ADV002',
   },
   {
     id: 'CLT005',
@@ -60,6 +64,7 @@ export const mockClients: Client[] = [
     joinedDate: '2024-01-05',
     lastActivity: '2024-01-11',
     advisor: 'James Wilson',
+    advisorId: 'ADV001',
   },
   {
     id: 'CLT006',
@@ -72,6 +77,7 @@ export const mockClients: Client[] = [
     joinedDate: '2018-11-20',
     lastActivity: '2024-01-10',
     advisor: 'Emily Rodriguez',
+    advisorId: 'ADV002',
   },
   {
     id: 'CLT007',
@@ -84,6 +90,7 @@ export const mockClients: Client[] = [
     joinedDate: '2021-09-12',
     lastActivity: '2024-01-09',
     advisor: 'James Wilson',
+    advisorId: 'ADV001',
   },
   {
     id: 'CLT008',
@@ -96,6 +103,7 @@ export const mockClients: Client[] = [
     joinedDate: '2020-02-28',
     lastActivity: '2023-12-15',
     advisor: 'Emily Rodriguez',
+    advisorId: 'ADV002',
   },
   {
     id: 'CLT009',
@@ -108,6 +116,7 @@ export const mockClients: Client[] = [
     joinedDate: '2019-04-18',
     lastActivity: '2024-01-08',
     advisor: 'James Wilson',
+    advisorId: 'ADV001',
   },
   {
     id: 'CLT010',
@@ -120,6 +129,7 @@ export const mockClients: Client[] = [
     joinedDate: '2017-07-01',
     lastActivity: '2024-01-07',
     advisor: 'Emily Rodriguez',
+    advisorId: 'ADV002',
   },
   {
     id: 'CLT011',
@@ -132,6 +142,7 @@ export const mockClients: Client[] = [
     joinedDate: '2023-05-20',
     lastActivity: '2024-01-06',
     advisor: 'James Wilson',
+    advisorId: 'ADV001',
   },
   {
     id: 'CLT012',
@@ -144,6 +155,7 @@ export const mockClients: Client[] = [
     joinedDate: '2020-10-15',
     lastActivity: '2024-01-05',
     advisor: 'Emily Rodriguez',
+    advisorId: 'ADV002',
   },
 ]
 
@@ -153,6 +165,10 @@ export function getClientById(id: string): Client | undefined {
 
 export function getClientsByAdvisor(advisor: string): Client[] {
   return mockClients.filter(client => client.advisor === advisor)
+}
+
+export function getClientsByAdvisorId(advisorId: string): Client[] {
+  return mockClients.filter(client => client.advisorId === advisorId)
 }
 
 export function getClientsByStatus(status: Client['status']): Client[] {

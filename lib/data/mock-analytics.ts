@@ -153,7 +153,10 @@ export const topPerformingClients = mockClients
   .filter(c => c.status === 'active')
   .sort((a, b) => b.portfolioValue - a.portfolioValue)
   .slice(0, 5)
-  .map(client => ({
-    ...client,
-    ytdReturn: Math.random() * 20 + 5, // Mock YTD return between 5-25%
-  }))
+  .map(client => {
+    // Deterministic mock YTD return derived from the client id — avoids
+    // server/client Math.random() hydration mismatch.
+    const seed = client.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+    const ytdReturn = 5 + (seed % 200) / 10 // stable value in range 5–25%
+    return { ...client, ytdReturn }
+  })
