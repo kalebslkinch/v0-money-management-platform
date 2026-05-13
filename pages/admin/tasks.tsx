@@ -1,10 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { ConfirmDeleteDialog } from '@/components/admin/confirm-delete-dialog'
 import { CreateTaskDialog } from '@/components/admin/create-task-dialog'
+import { TaskSheet } from '@/components/admin/task-sheet'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -69,6 +70,8 @@ function TasksPageInner() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<TaskRecord | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [viewTask, setViewTask] = useState<TaskRecord | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase().trim()
@@ -85,6 +88,11 @@ function TasksPageInner() {
     setDialogOpen(true)
   }
 
+  function openView(task: TaskRecord) {
+    setViewTask(task)
+    setSheetOpen(true)
+  }
+
   function openEdit(task: TaskRecord) {
     setEditing(task)
     setDialogOpen(true)
@@ -99,7 +107,7 @@ function TasksPageInner() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <AdminHeader title="Tasks" subtitle="Create and manage team task records" />
+      <AdminHeader title="Tasks" />
 
       <main className="flex-1 p-6 space-y-6">
         {/* Summary stats */}
@@ -193,7 +201,11 @@ function TasksPageInner() {
                     </TableRow>
                   ) : (
                     filtered.map(task => (
-                      <TableRow key={task.id} className="hover:bg-muted/30">
+                      <TableRow
+                        key={task.id}
+                        className="hover:bg-muted/30 cursor-pointer"
+                        onClick={() => openView(task)}
+                      >
                         <TableCell>
                           <div>
                             <p className="font-medium text-sm">{task.title}</p>
@@ -224,7 +236,15 @@ function TasksPageInner() {
                           {task.createdByName}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8"
+                              onClick={() => openView(task)}
+                            >
+                              <Eye className="size-3.5" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -262,6 +282,14 @@ function TasksPageInner() {
         createdByName={user.name}
         onCreate={input => create(input)}
         onUpdate={(id, patch) => update(id, patch)}
+      />
+
+      <TaskSheet
+        task={viewTask}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onEdit={task => openEdit(task)}
+        onDelete={id => setConfirmId(id)}
       />
 
       <ConfirmDeleteDialog

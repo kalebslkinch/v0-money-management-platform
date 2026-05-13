@@ -151,8 +151,8 @@ export default function PrivacyPage() {
               <p>You can withdraw consent at any time by toggling the switches above.</p>
               <p>
                 To request a copy of your data or its deletion, contact{' '}
-                <a className="text-primary hover:underline" href="mailto:privacy@pmfs.example.com">
-                  privacy@pmfs.example.com
+                <a className="text-primary hover:underline" href="mailto:privacy@alphafinance.com">
+                  privacy@alphafinance.com
                 </a>
                 .
               </p>

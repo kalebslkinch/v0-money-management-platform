@@ -1,10 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { ConfirmDeleteDialog } from '@/components/admin/confirm-delete-dialog'
 import { CreateTeamMemberDialog } from '@/components/admin/create-team-member-dialog'
+import { TeamMemberSheet } from '@/components/admin/team-member-sheet'
 import { StaffTable } from '@/components/admin/staff-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -58,6 +59,8 @@ function StaffPageInner() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<TeamMember | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [viewMember, setViewMember] = useState<TeamMember | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase().trim()
@@ -75,6 +78,11 @@ function StaffPageInner() {
     setDialogOpen(true)
   }
 
+  function openView(member: TeamMember) {
+    setViewMember(member)
+    setSheetOpen(true)
+  }
+
   function openEdit(member: TeamMember) {
     setEditing(member)
     setDialogOpen(true)
@@ -82,7 +90,7 @@ function StaffPageInner() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <AdminHeader title="Team" subtitle="Manage your team members" />
+      <AdminHeader title="Team" />
 
       <main className="flex-1 p-6 space-y-6">
         {/* Existing advisors (mock data reference) */}
@@ -142,7 +150,11 @@ function StaffPageInner() {
                     </TableRow>
                   ) : (
                     filtered.map(member => (
-                      <TableRow key={member.id} className="hover:bg-muted/30">
+                      <TableRow
+                        key={member.id}
+                        className="hover:bg-muted/30 cursor-pointer"
+                        onClick={() => openView(member)}
+                      >
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="size-9">
@@ -173,7 +185,15 @@ function StaffPageInner() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8"
+                              onClick={() => openView(member)}
+                            >
+                              <Eye className="size-3.5" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -208,6 +228,14 @@ function StaffPageInner() {
         editing={editing}
         onCreate={input => create(input)}
         onUpdate={(id, patch) => update(id, patch)}
+      />
+
+      <TeamMemberSheet
+        member={viewMember}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onEdit={member => openEdit(member)}
+        onDelete={id => setConfirmId(id)}
       />
 
       <ConfirmDeleteDialog
