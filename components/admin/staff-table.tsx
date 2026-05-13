@@ -2,10 +2,27 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { TrendingUp, TrendingDown, Search } from 'lucide-react'
+import { TrendingUp, TrendingDown, Search, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Table,
   TableBody,
@@ -44,10 +61,13 @@ const statusLabels: Record<Advisor['status'], string> = {
 
 interface StaffTableProps {
   advisors: Advisor[]
+  onEdit?: (advisor: Advisor) => void
+  onRemove?: (advisor: Advisor) => void
 }
 
-export function StaffTable({ advisors }: StaffTableProps) {
+export function StaffTable({ advisors, onEdit, onRemove }: StaffTableProps) {
   const [search, setSearch] = useState('')
+  const [removeTarget, setRemoveTarget] = useState<Advisor | null>(null)
 
   const filtered = advisors.filter(a =>
     a.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -77,6 +97,7 @@ export function StaffTable({ advisors }: StaffTableProps) {
               <TableHead className="text-right">Open Cases</TableHead>
               <TableHead className="text-right">Monthly Return</TableHead>
               <TableHead>Status</TableHead>
+              {(onEdit || onRemove) && <TableHead className="w-[52px]" />}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -137,12 +158,63 @@ export function StaffTable({ advisors }: StaffTableProps) {
                       {statusLabels[advisor.status]}
                     </Badge>
                   </TableCell>
+                  {(onEdit || onRemove) && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {onEdit && (
+                            <DropdownMenuItem onClick={() => onEdit(advisor)}>
+                              <Pencil className="mr-2 size-4" />
+                              Edit Staff
+                            </DropdownMenuItem>
+                          )}
+                          {onRemove && (
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setRemoveTarget(advisor)}
+                            >
+                              <Trash2 className="mr-2 size-4" />
+                              Remove
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={removeTarget !== null} onOpenChange={open => { if (!open) setRemoveTarget(null) }}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {removeTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove {removeTarget?.name} from the team. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (removeTarget) onRemove?.(removeTarget)
+                setRemoveTarget(null)
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -170,3 +170,17 @@ export function getRecentTransactions(limit: number = 10): Transaction[] {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, limit)
 }
+
+export function addTransaction(t: Transaction): void {
+  mockTransactions.push(t)
+}
+
+export function updateTransaction(updated: Transaction): void {
+  const idx = mockTransactions.findIndex(t => t.id === updated.id)
+  if (idx >= 0) mockTransactions[idx] = updated
+}
+
+export function deleteTransaction(id: string): void {
+  const idx = mockTransactions.findIndex(t => t.id === id)
+  if (idx >= 0) mockTransactions.splice(idx, 1)
+}

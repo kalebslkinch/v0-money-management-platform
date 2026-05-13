@@ -412,3 +412,21 @@ export function getCasesDueThisWeek(): Case[] {
     return due >= now && due <= endOfWeek
   })
 }
+
+export function getAllCases(): Case[] {
+  return [...mockCases]
+}
+
+export function addCase(c: Case): void {
+  mockCases.push(c)
+}
+
+export function updateCase(updated: Case): void {
+  const idx = mockCases.findIndex(c => c.id === updated.id)
+  if (idx >= 0) mockCases[idx] = updated
+}
+
+export function deleteCase(id: string): void {
+  const idx = mockCases.findIndex(c => c.id === id)
+  if (idx >= 0) mockCases.splice(idx, 1)
+}

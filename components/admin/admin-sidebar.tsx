@@ -12,6 +12,8 @@ import {
   LogOut,
   TrendingUp,
   Zap,
+  UserCog,
+  FolderKanban,
 } from 'lucide-react'
 
 import {
@@ -41,6 +43,16 @@ const navigationItems = [
     title: 'Clients',
     url: '/admin/clients',
     icon: Users,
+  },
+  {
+    title: 'Staff',
+    url: '/admin/staff',
+    icon: UserCog,
+  },
+  {
+    title: 'Cases',
+    url: '/admin/cases',
+    icon: FolderKanban,
   },
   {
     title: 'Budgets',
@@ -86,6 +98,14 @@ export function AdminSidebar() {
   const visibleNavigationItems = navigationItems.filter(item => {
     if (item.url === '/admin/clients') {
       return hasPermission(effectiveRole, 'viewClients')
+    }
+
+    if (item.url === '/admin/staff') {
+      return hasPermission(effectiveRole, 'manageStaff')
+    }
+
+    if (item.url === '/admin/cases') {
+      return hasPermission(effectiveRole, 'viewCases')
     }
 
     if (item.url === '/admin/analytics') {
