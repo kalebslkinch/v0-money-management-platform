@@ -15,7 +15,6 @@ import {
   X,
   RotateCcw,
   Calendar,
-  Sparkles,
   SunMedium,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -96,29 +95,30 @@ export function DashboardToolbar({ layout, managerName = 'James', onReturnToBrie
     <TooltipProvider delayDuration={400}>
       <div className="px-6 md:px-8 pt-6 md:pt-8 pb-0">
         <div className="mx-auto max-w-7xl">
-          {/* ── Page Header ── */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-2 text-primary mb-2">
-                <Sparkles className="size-4" />
-                <span className="text-sm font-medium">Good morning</span>
+          {/* ── Page Header — Monzo-clean: greeting + name on one line, view description below ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <h1 className="text-2xl font-bold tracking-tight truncate">
+                  {managerName}
+                </h1>
+                <span className="text-muted-foreground text-sm hidden sm:inline">· Good morning</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                Welcome back, {managerName}
-              </h1>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <p className="text-muted-foreground text-sm mt-0.5 truncate">
                 {activeView?.description ?? "Here's what's happening with your customers' budgets today."}
               </p>
             </div>
 
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border/50 shrink-0">
-              <Calendar className="size-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{today}</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] text-muted-foreground text-xs">
+                <Calendar className="size-3.5" />
+                <span>{today}</span>
+              </div>
             </div>
           </div>
 
           {/* ── View Tabs + Edit Controls ── */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border/50">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-border/40">
             {/* Named View Pills */}
             <div className="flex items-center gap-2 flex-wrap">
               {state.views.map(view => {
@@ -130,23 +130,23 @@ export function DashboardToolbar({ layout, managerName = 'James', onReturnToBrie
                     <button
                       onClick={() => setActiveView(view.id)}
                       className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200',
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150',
                         isActive
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:border-border',
-                        !view.isPreset && isActive && 'pr-7',
+                          ? 'bg-foreground text-background shadow-sm'
+                          : 'bg-card shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] text-muted-foreground hover:text-foreground',
+                        !view.isPreset && isActive && 'pr-6',
                       )}
                     >
-                      <Icon className="size-3.5 shrink-0" />
+                      <Icon className="size-3 shrink-0" />
                       <span>{view.name}</span>
                       {view.isPreset && (
                         <Badge
                           variant="outline"
                           className={cn(
-                            'text-[9px] h-4 px-1 rounded-full border ml-0.5',
+                            'text-[9px] h-3.5 px-1 rounded-full border ml-0.5',
                             isActive
-                              ? 'border-primary-foreground/30 text-primary-foreground/70 bg-primary-foreground/10'
-                              : 'border-border/50 text-muted-foreground/60',
+                              ? 'border-background/30 text-background/60 bg-background/10'
+                              : 'border-border/50 text-muted-foreground/50',
                           )}
                         >
                           Preset
@@ -161,8 +161,8 @@ export function DashboardToolbar({ layout, managerName = 'James', onReturnToBrie
                           <button
                             onClick={() => deleteView(view.id)}
                             className={cn(
-                              'absolute right-1.5 size-4 flex items-center justify-center rounded-full',
-                              'text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/20',
+                              'absolute right-1 size-4 flex items-center justify-center rounded-full',
+                              'text-background/60 hover:text-background hover:bg-background/20',
                               'transition-all duration-150',
                               !isActive && 'hidden',
                             )}
@@ -260,9 +260,9 @@ export function DashboardToolbar({ layout, managerName = 'James', onReturnToBrie
 
           {/* Edit mode instruction strip */}
           {editMode && (
-            <div className="flex items-center gap-2 py-2.5 px-4 mt-3 rounded-xl bg-primary/5 border border-primary/20 text-primary text-xs font-medium">
-              <Settings2 className="size-3.5 shrink-0" />
-              <span>Edit mode active — drag widgets to reorder, resize, or pin them. Click <strong>Done</strong> when finished.</span>
+            <div className="flex items-center gap-2 py-2 px-3.5 mt-2.5 rounded-xl bg-primary/6 border border-primary/15 text-primary text-[11px] font-medium">
+              <Settings2 className="size-3 shrink-0" />
+              <span>Edit mode — drag to reorder, tap the size picker to resize, pin to lock position. Hit <strong>Done</strong> when finished.</span>
             </div>
           )}
         </div>

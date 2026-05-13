@@ -15,7 +15,7 @@ import {
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
   useSortable,
   arrayMove,
 } from '@dnd-kit/sortable'
@@ -92,14 +92,16 @@ export function DashboardGrid({ layout }: DashboardGridProps) {
     >
       <SortableContext
         items={sortedWidgets.map(w => w.instanceId)}
-        strategy={verticalListSortingStrategy}
+        strategy={rectSortingStrategy}
       >
         {/*
-          12-column grid. Each cell is the sortable element — setNodeRef lives
-          on the grid cell div so dnd-kit measures and transforms the element
-          that CSS Grid is actually positioning. WidgetWrapper is presentational.
+          4-column grid with dense auto-flow — each cell is the sortable element.
+          setNodeRef lives on the grid cell div so dnd-kit measures and transforms
+          the element that CSS Grid is actually positioning.
+          Dense packing ensures smaller widgets fill gaps, creating the phone-OS
+          "tiles fit together" look.
         */}
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-4 gap-3" style={{ gridAutoFlow: 'dense' }}>
           {sortedWidgets.map(widget => {
             const isAutoPromoted = autoPromotedWidgetIds.has(widget.widgetId)
             return (

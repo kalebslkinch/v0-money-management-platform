@@ -190,8 +190,14 @@ function ManagerFilterBar({
 export function GlobalSearch() {
   const [open, setOpen] = React.useState(false)
   const [filters, setFilters] = React.useState<ManagerFilters>(DEFAULT_FILTERS)
+  const [isMac, setIsMac] = React.useState(false)
   const { role, user, isHydrated } = useUserRole()
   const router = useRouter()
+
+  // Detect platform after mount to avoid SSR mismatch
+  React.useEffect(() => {
+    setIsMac(/mac/i.test(navigator.platform))
+  }, [])
 
   const effectiveRole = isHydrated ? role : 'manager'
 
@@ -254,7 +260,7 @@ export function GlobalSearch() {
         <Search className="size-4 shrink-0" />
         <span className="flex-1 text-left text-sm truncate">Search…</span>
         <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-          <CommandIcon className="size-3" />K
+          {isMac ? <><CommandIcon className="size-3" />K</> : 'Ctrl K'}
         </kbd>
       </button>
 

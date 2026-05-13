@@ -36,8 +36,8 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
     label: 'Portfolio Performance',
     description: 'Firm AUM vs. S&P 500 benchmark trend over the last 6 months.',
     category: 'chart',
-    defaultSize: 'large',
-    minSize: 'medium',
+    defaultSize: 'medium',
+    minSize: 'small',
     icon: 'TrendingUp',
   },
   'allocation-chart': {
@@ -54,8 +54,8 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
     label: 'Recent Transactions',
     description: 'Latest income, bill payments, card spending, refunds, and bank fees.',
     category: 'data',
-    defaultSize: 'large',
-    minSize: 'medium',
+    defaultSize: 'full',
+    minSize: 'small',
     icon: 'ArrowLeftRight',
   },
   'activity-feed': {
@@ -63,8 +63,8 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
     label: 'Activity Feed',
     description: 'Real-time timeline of client events, meetings, and document actions.',
     category: 'data',
-    defaultSize: 'large',
-    minSize: 'medium',
+    defaultSize: 'medium',
+    minSize: 'small',
     icon: 'Activity',
   },
   'alerts-panel': {
@@ -92,7 +92,7 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
     description: 'Full advisory team roster with AUM, performance metrics, and status.',
     category: 'data',
     defaultSize: 'full',
-    minSize: 'large',
+    minSize: 'medium',
     icon: 'Users',
   },
 }

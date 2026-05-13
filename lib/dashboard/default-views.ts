@@ -21,7 +21,7 @@ function inst(
 
 /**
  * Morning Review — default view. Wide overview of firm health first thing.
- * Cognitive load is low: KPIs scan in seconds, alert panel is pinned top-right.
+ * Sized for a 4-col grid: medium pairs fill rows, full-width for tables/feeds.
  */
 const morningReview: DashboardView = {
   id: 'preset-morning-review',
@@ -31,11 +31,11 @@ const morningReview: DashboardView = {
   isPreset: true,
   widgets: [
     inst('stats-cards', 'full'),
-    inst('portfolio-chart', 'large'),
+    inst('portfolio-chart', 'medium'),
     inst('allocation-chart', 'medium'),
     inst('alerts-panel', 'medium', true), // pinned — always visible
-    inst('recent-transactions', 'large'),
     inst('top-clients', 'medium'),
+    inst('recent-transactions', 'full'),
     inst('activity-feed', 'full'),
   ],
 }
@@ -55,14 +55,14 @@ const clientRiskFocus: DashboardView = {
     inst('alerts-panel', 'medium', true), // pinned
     inst('allocation-chart', 'medium'),
     inst('top-clients', 'medium'),
+    inst('activity-feed', 'medium'),
     inst('recent-transactions', 'full'),
-    inst('activity-feed', 'large'),
   ],
 }
 
 /**
  * Advisor Performance — for reviewing the team.
- * Full-width staff table dominates, with activity feed below.
+ * Full-width staff table dominates, with activity feed alongside alerts.
  */
 const advisorPerformance: DashboardView = {
   id: 'preset-advisor-performance',
@@ -72,9 +72,9 @@ const advisorPerformance: DashboardView = {
   isPreset: true,
   widgets: [
     inst('stats-cards', 'full'),
-    inst('staff-table', 'full'),
-    inst('activity-feed', 'large'),
     inst('alerts-panel', 'medium', true), // pinned
+    inst('activity-feed', 'medium'),
+    inst('staff-table', 'full'),
   ],
 }
 
@@ -90,10 +90,10 @@ const endOfMonth: DashboardView = {
   isPreset: true,
   widgets: [
     inst('stats-cards', 'full'),
-    inst('portfolio-chart', 'large'),
+    inst('portfolio-chart', 'medium'),
     inst('allocation-chart', 'medium'),
     inst('top-clients', 'medium'),
-    inst('recent-transactions', 'large'),
+    inst('recent-transactions', 'full'),
     inst('staff-table', 'full'),
     inst('activity-feed', 'full'),
   ],

@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { StoreBootstrap } from '@/components/admin/store-bootstrap'
 import { ReminderScheduler } from '@/components/admin/reminder-scheduler'
+import { BackgroundEventEngineProvider } from '@/components/admin/background-event-engine'
 import {
   createDefaultUser,
   PMFS_USER_STORAGE_KEY,
@@ -26,6 +27,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
       </SidebarProvider>
       <StoreBootstrap />
       <ReminderScheduler />
+      <BackgroundEventEngineProvider />
     </main>
   );
 }
