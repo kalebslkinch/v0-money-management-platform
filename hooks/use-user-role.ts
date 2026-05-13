@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   createDefaultUser,
+  DEFAULT_USER,
   PMFS_USER_STORAGE_KEY,
   parseStoredUser,
   type CurrentUser,
@@ -29,7 +30,7 @@ export function writeCurrentUser(user: CurrentUser): void {
 }
 
 export function useUserRole() {
-  const [user, setUser] = useState<CurrentUser>(readCurrentUser)
+  const [user, setUser] = useState<CurrentUser>(DEFAULT_USER)
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {

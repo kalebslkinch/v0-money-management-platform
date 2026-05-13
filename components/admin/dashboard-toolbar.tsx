@@ -105,7 +105,7 @@ export function DashboardToolbar({ layout, managerName = 'James' }: DashboardToo
                 Welcome back, {managerName}
               </h1>
               <p className="text-muted-foreground mt-1 text-sm">
-                {activeView?.description ?? "Here's what's happening with your portfolios today."}
+                {activeView?.description ?? "Here's what's happening with your customers' budgets today."}
               </p>
             </div>
 

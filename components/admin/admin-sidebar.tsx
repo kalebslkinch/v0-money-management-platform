@@ -43,7 +43,7 @@ const navigationItems = [
     icon: Users,
   },
   {
-    title: 'Portfolios',
+    title: 'Budgets',
     url: '/admin/portfolios',
     icon: PieChart,
   },
@@ -72,7 +72,9 @@ function roleSubtitle(role: UserRole): string {
 
 export function AdminSidebar() {
   const { pathname } = useRouter()
-  const { user } = useUserRole()
+  const { user, isHydrated } = useUserRole()
+  const effectiveRole: UserRole = isHydrated ? user.role : 'manager'
+  const effectiveName = isHydrated ? user.name : 'James Wilson'
 
   const isActive = (url: string) => {
     if (url === '/admin') {
@@ -83,22 +85,34 @@ export function AdminSidebar() {
 
   const visibleNavigationItems = navigationItems.filter(item => {
     if (item.url === '/admin/clients') {
-      return hasPermission(user.role, 'viewClients')
+      return hasPermission(effectiveRole, 'viewClients')
     }
 
     if (item.url === '/admin/analytics') {
-      return hasPermission(user.role, 'viewAnalytics')
+      return hasPermission(effectiveRole, 'viewAnalytics')
     }
 
     if (item.url === '/admin/transactions') {
-      return hasPermission(user.role, 'viewTransactions')
+      return hasPermission(effectiveRole, 'viewTransactions')
     }
 
     if (item.url === '/admin/portfolios') {
-      return hasPermission(user.role, 'viewPortfolios')
+      return hasPermission(effectiveRole, 'viewPortfolios')
     }
 
     return true
+  })
+
+  const roleAwareNavigationItems = visibleNavigationItems.map(item => {
+    if (effectiveRole === 'customer' && item.url === '/admin/portfolios') {
+      return { ...item, title: 'Budgets' }
+    }
+
+    if (effectiveRole === 'customer' && item.url === '/admin/transactions') {
+      return { ...item, title: 'Spending' }
+    }
+
+    return item
   })
 
   return (
@@ -113,7 +127,7 @@ export function AdminSidebar() {
                 </div>
                 <div className="flex flex-col leading-none">
                   <span className="text-lg font-bold tracking-tight">PMFS</span>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Wealth Platform</span>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Personal Finance</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -125,7 +139,7 @@ export function AdminSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {visibleNavigationItems.map((item) => {
+              {roleAwareNavigationItems.map((item) => {
                 const active = isActive(item.url)
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -160,10 +174,10 @@ export function AdminSidebar() {
         <div className="mt-6 mx-1 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-chart-2/5 border border-primary/10">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="size-4 text-primary" />
-            <span className="text-xs font-medium text-muted-foreground">Today&apos;s Performance</span>
+            <span className="text-xs font-medium text-muted-foreground">Weekly Budget Health</span>
           </div>
           <div className="text-2xl font-bold text-foreground">+2.4%</div>
-          <div className="text-xs text-chart-2 mt-1">Portfolio growth</div>
+          <div className="text-xs text-chart-2 mt-1">Spending on-track trend</div>
         </div>
       </SidebarContent>
 
@@ -174,7 +188,7 @@ export function AdminSidebar() {
               <SidebarMenuButton size="lg" className="hover:bg-transparent">
                 <Avatar className="size-9 ring-2 ring-primary/20">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-chart-2 text-primary-foreground text-xs font-semibold">
-                    {user.name
+                    {effectiveName
                       .split(' ')
                       .map(part => part[0])
                       .join('')
@@ -183,8 +197,8 @@ export function AdminSidebar() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col leading-none">
-                  <span className="font-semibold text-sm">{user.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{roleSubtitle(user.role)}</span>
+                  <span className="font-semibold text-sm">{effectiveName}</span>
+                  <span className="text-[11px] text-muted-foreground">{roleSubtitle(effectiveRole)}</span>
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>

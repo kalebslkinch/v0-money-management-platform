@@ -7,13 +7,35 @@ import { useUserRole } from '@/hooks/use-user-role'
 import { getVisibleClients } from '@/lib/utils/role-filters'
 import { formatCurrency } from '@/lib/utils/format'
 
+import { PFMSCustomerDashboard } from '@/components/admin/pfms-customer-dashboard'
+import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
+
 export default function ClientsPage() {
   const { user } = useUserRole()
-  const visibleClients = getVisibleClients(user)
 
+  if (user.role === 'customer') {
+    const snapshot = getPFMSSnapshotForCustomer(user.clientId ?? 'CLT001')
+    return (
+      <>
+        <AdminHeader title="Your Profile" />
+        <main className="flex-1 overflow-auto">
+          <div className="p-6 md:p-8">
+            <div className="mx-auto max-w-3xl space-y-8">
+              <PFMSCustomerDashboard snapshot={snapshot} />
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  const visibleClients = getVisibleClients(user)
   const totalClients = visibleClients.length
   const activeClients = visibleClients.filter(c => c.status === 'active').length
-  const totalAUM = visibleClients.reduce((sum, c) => sum + c.portfolioValue, 0)
+  const weeklyBudgetTotal = visibleClients.reduce((sum, client) => {
+    const snapshot = getPFMSSnapshotForCustomer(client.id)
+    return sum + snapshot.categories.reduce((categorySum, category) => categorySum + category.weeklyBudget, 0)
+  }, 0)
 
   return (
     <RouteGuard allowedRoles={['manager', 'fa']}>
@@ -27,7 +49,7 @@ export default function ClientsPage() {
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Clients</h1>
                 <p className="text-muted-foreground mt-1">
                   {user.role === 'manager'
-                    ? 'Manage your client relationships and portfolios.'
+                    ? 'Manage customer relationships and weekly spending plans.'
                     : 'Review and manage your assigned client relationships.'}
                 </p>
               </div>
@@ -64,8 +86,8 @@ export default function ClientsPage() {
                   <Wallet className="size-6 text-chart-4" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total AUM</p>
-                  <p className="text-2xl font-bold">{formatCurrency(totalAUM, true)}</p>
+                  <p className="text-sm text-muted-foreground">Weekly Budget Total</p>
+                  <p className="text-2xl font-bold">{formatCurrency(weeklyBudgetTotal)}</p>
                 </div>
               </div>
             </div>
@@ -74,7 +96,7 @@ export default function ClientsPage() {
             <ClientTable
               clients={visibleClients}
               showAdvisor={user.role === 'manager'}
-              allowActions={user.role !== 'customer'}
+              allowActions
             />
           </div>
         </div>

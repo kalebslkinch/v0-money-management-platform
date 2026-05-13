@@ -1,54 +1,141 @@
+import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
+  CartesianGrid,
+  Legend,
   Line,
   LineChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
   ResponsiveContainer,
   Tooltip,
-  Legend,
+  XAxis,
+  YAxis,
 } from 'recharts'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { RouteGuard } from '@/components/auth/route-guard'
+import { useUserRole } from '@/hooks/use-user-role'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { revenueData, clientGrowthData, kpiData, riskDistributionData } from '@/lib/data/mock-analytics'
+import { getVisibleClients, getVisibleTransactions } from '@/lib/utils/role-filters'
+import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 import { formatCurrency, formatPercentage } from '@/lib/utils/format'
-import { TrendingUp, TrendingDown, Users, DollarSign, PieChart } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { DollarSign, TrendingUp, Users, AlertTriangle } from 'lucide-react'
 
 export default function AnalyticsPage() {
+  const { user } = useUserRole()
+
+  const visibleClients = useMemo(() => getVisibleClients(user), [user])
+  const visibleTransactions = useMemo(() => getVisibleTransactions(user), [user])
+
+  const snapshots = useMemo(
+    () => visibleClients.map(client => getPFMSSnapshotForCustomer(client.id)),
+    [visibleClients],
+  )
+
+  const completedTransactions = useMemo(
+    () => visibleTransactions.filter(txn => txn.status === 'completed'),
+    [visibleTransactions],
+  )
+
+  const totalWeeklyBudget = snapshots.reduce(
+    (sum, snapshot) =>
+      sum + snapshot.categories.reduce((categorySum, category) => categorySum + category.weeklyBudget, 0),
+    0,
+  )
+
+  const totalSpent = snapshots.reduce(
+    (sum, snapshot) =>
+      sum + snapshot.categories.reduce((categorySum, category) => categorySum + category.spent, 0),
+    0,
+  )
+
+  const totalProjected = snapshots.reduce(
+    (sum, snapshot) =>
+      sum + snapshot.categories.reduce((categorySum, category) => categorySum + category.projectedSpend, 0),
+    0,
+  )
+
+  const customersOverPace = snapshots.filter(snapshot => {
+    const budget = snapshot.categories.reduce((sum, category) => sum + category.weeklyBudget, 0)
+    const projected = snapshot.categories.reduce((sum, category) => sum + category.projectedSpend, 0)
+    return projected > budget
+  }).length
+
+  const budgetUsage = totalWeeklyBudget > 0 ? (totalSpent / totalWeeklyBudget) * 100 : 0
+
+  const monthFlowMap = completedTransactions.reduce<Record<string, { month: string; inflow: number; outflow: number }>>(
+    (acc, txn) => {
+      const date = new Date(txn.date)
+      const month = date.toLocaleString('en-GB', { month: 'short' })
+      if (!acc[month]) {
+        acc[month] = { month, inflow: 0, outflow: 0 }
+      }
+
+      if (txn.type === 'deposit' || txn.type === 'dividend' || txn.type === 'sell') {
+        acc[month].inflow += txn.amount
+      } else {
+        acc[month].outflow += txn.amount
+      }
+
+      return acc
+    },
+    {},
+  )
+
+  const cashFlowData = Object.values(monthFlowMap)
+
+  const categoryTotals = snapshots.reduce<Record<string, number>>((acc, snapshot) => {
+    snapshot.categories.forEach(category => {
+      acc[category.label] = (acc[category.label] ?? 0) + category.spent
+    })
+    return acc
+  }, {})
+
+  const categoryData = Object.entries(categoryTotals)
+    .map(([name, spent]) => ({ name, spent }))
+    .sort((a, b) => b.spent - a.spent)
+    .slice(0, 5)
+
   return (
     <RouteGuard allowedRoles={['manager', 'fa']}>
       <AdminHeader title="Analytics" />
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
-          {/* Page Header */}
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">PFMS Analytics</h1>
             <p className="text-muted-foreground">
-              Detailed insights into your business performance and metrics.
+              Budget adherence, category pressure, and weekly cash movement across your visible customers.
             </p>
           </div>
 
-          {/* KPI Summary */}
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
-                    <DollarSign className="size-5 text-primary" />
+                    <Users className="size-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-xl font-bold tabular-nums">
-                      {formatCurrency(revenueData.reduce((sum, d) => sum + d.revenue, 0))}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Visible Customers</p>
+                    <p className="text-xl font-bold tabular-nums">{visibleClients.length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-chart-2/10">
+                    <DollarSign className="size-5 text-chart-2" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Weekly Budget Total</p>
+                    <p className="text-xl font-bold tabular-nums">{formatCurrency(totalWeeklyBudget)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -56,167 +143,109 @@ export default function AnalyticsPage() {
                     <TrendingUp className="size-5 text-success" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Avg. Return</p>
-                    <p className="text-xl font-bold tabular-nums text-success">
-                      {formatPercentage(kpiData.avgReturn)}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Budget Usage</p>
+                    <p className="text-xl font-bold tabular-nums text-success">{formatPercentage(budgetUsage)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-chart-2/10">
-                    <Users className="size-5 text-chart-2" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Client Growth</p>
-                    <p className="text-xl font-bold tabular-nums">
-                      {formatPercentage(kpiData.clientsChange)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex size-10 items-center justify-center rounded-full bg-warning/10">
-                    <PieChart className="size-5 text-warning" />
+                    <AlertTriangle className="size-5 text-warning" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">AUM Growth</p>
-                    <p className="text-xl font-bold tabular-nums">
-                      {formatPercentage(kpiData.aumChange)}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Over Pace</p>
+                    <p className="text-xl font-bold tabular-nums">{customersOverPace}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Charts Row 1 */}
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Revenue Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Revenue Breakdown</CardTitle>
-                <CardDescription>Monthly revenue by source</CardDescription>
+                <CardTitle>Cash Movement by Month</CardTitle>
+                <CardDescription>Completed inflow vs outflow from visible transactions.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={revenueData}>
+                    <BarChart data={cashFlowData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        className="text-xs text-muted-foreground"
-                      />
+                      <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
                       <YAxis
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => `$${value / 1000}K`}
+                        tickFormatter={value => `$${Math.round(value / 1000)}k`}
                         className="text-xs text-muted-foreground"
                         width={50}
                       />
                       <Tooltip
                         content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="rounded-lg border bg-card p-3 shadow-md">
-                                <p className="text-sm font-medium mb-2">{label}</p>
-                                {payload.map((entry, index) => (
-                                  <p key={index} className="text-sm" style={{ color: entry.color }}>
-                                    {entry.name}: {formatCurrency(entry.value as number)}
-                                  </p>
-                                ))}
-                              </div>
-                            )
-                          }
-                          return null
+                          if (!active || !payload || payload.length === 0) return null
+
+                          return (
+                            <div className="rounded-lg border bg-card p-3 shadow-md">
+                              <p className="text-sm font-medium mb-2">{label}</p>
+                              {payload.map((entry, index) => (
+                                <p key={index} className="text-sm" style={{ color: entry.color }}>
+                                  {entry.name}: {formatCurrency(entry.value as number)}
+                                </p>
+                              ))}
+                            </div>
+                          )
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="fees" name="Management Fees" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="commissions" name="Commissions" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="inflow" name="Inflow" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="outflow" name="Outflow" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Client & AUM Growth */}
             <Card>
               <CardHeader>
-                <CardTitle>Growth Trends</CardTitle>
-                <CardDescription>Client count and AUM over time</CardDescription>
+                <CardTitle>Top Spend Categories</CardTitle>
+                <CardDescription>Where spending is concentrated this week.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={clientGrowthData}>
+                    <LineChart data={categoryData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        className="text-xs text-muted-foreground"
-                      />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} className="text-xs text-muted-foreground" />
                       <YAxis
-                        yAxisId="left"
                         tickLine={false}
                         axisLine={false}
-                        className="text-xs text-muted-foreground"
-                        width={30}
-                      />
-                      <YAxis
-                        yAxisId="right"
-                        orientation="right"
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `$${value / 1000000}M`}
+                        tickFormatter={value => `$${Math.round(value)}`}
                         className="text-xs text-muted-foreground"
                         width={50}
                       />
                       <Tooltip
                         content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="rounded-lg border bg-card p-3 shadow-md">
-                                <p className="text-sm font-medium mb-2">{label}</p>
-                                <p className="text-sm text-primary">
-                                  Clients: {payload[0].value}
-                                </p>
-                                <p className="text-sm text-chart-2">
-                                  AUM: {formatCurrency(payload[1].value as number)}
-                                </p>
-                              </div>
-                            )
-                          }
-                          return null
+                          if (!active || !payload || payload.length === 0) return null
+
+                          return (
+                            <div className="rounded-lg border bg-card p-3 shadow-md">
+                              <p className="text-sm font-medium mb-2">{label}</p>
+                              <p className="text-sm text-primary">Spent: {formatCurrency(payload[0].value as number)}</p>
+                            </div>
+                          )
                         }}
                       />
-                      <Legend />
                       <Line
-                        yAxisId="left"
                         type="monotone"
-                        dataKey="clients"
-                        name="Clients"
+                        dataKey="spent"
+                        name="Spent"
                         stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={{ fill: 'hsl(var(--primary))' }}
-                      />
-                      <Line
-                        yAxisId="right"
-                        type="monotone"
-                        dataKey="aum"
-                        name="AUM"
-                        stroke="hsl(var(--chart-2))"
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--chart-2))' }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -225,95 +254,26 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Risk Analysis */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Monthly Performance Summary</CardTitle>
-                <CardDescription>Key metrics compared month-over-month</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-1 p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">Revenue Growth</p>
-                    <p className={cn(
-                      'text-2xl font-bold flex items-center gap-1',
-                      kpiData.revenueChange >= 0 ? 'text-success' : 'text-destructive'
-                    )}>
-                      {kpiData.revenueChange >= 0 ? (
-                        <TrendingUp className="size-5" />
-                      ) : (
-                        <TrendingDown className="size-5" />
-                      )}
-                      {formatPercentage(kpiData.revenueChange)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">vs previous month</p>
-                  </div>
-                  <div className="space-y-1 p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">AUM Growth</p>
-                    <p className={cn(
-                      'text-2xl font-bold flex items-center gap-1',
-                      kpiData.aumChange >= 0 ? 'text-success' : 'text-destructive'
-                    )}>
-                      {kpiData.aumChange >= 0 ? (
-                        <TrendingUp className="size-5" />
-                      ) : (
-                        <TrendingDown className="size-5" />
-                      )}
-                      {formatPercentage(kpiData.aumChange)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">vs previous month</p>
-                  </div>
-                  <div className="space-y-1 p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground">Return Improvement</p>
-                    <p className={cn(
-                      'text-2xl font-bold flex items-center gap-1',
-                      kpiData.returnChange >= 0 ? 'text-success' : 'text-destructive'
-                    )}>
-                      {kpiData.returnChange >= 0 ? (
-                        <TrendingUp className="size-5" />
-                      ) : (
-                        <TrendingDown className="size-5" />
-                      )}
-                      {formatPercentage(kpiData.returnChange)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">vs previous month</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Risk Distribution</CardTitle>
-                <CardDescription>Clients by risk profile</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {riskDistributionData.map((risk) => (
-                    <div key={risk.level} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium capitalize">{risk.level} Risk</span>
-                        <span className="text-sm text-muted-foreground">
-                          {risk.count} clients ({risk.percentage}%)
-                        </span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className={cn(
-                            'h-full rounded-full transition-all',
-                            risk.level === 'Low' ? 'bg-success' :
-                            risk.level === 'Moderate' ? 'bg-warning' : 'bg-destructive'
-                          )}
-                          style={{ width: `${risk.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Budget Outlook</CardTitle>
+              <CardDescription>Projected spending against configured weekly budgets.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-lg bg-muted/50 p-4">
+                <p className="text-sm text-muted-foreground">Spent So Far</p>
+                <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalSpent)}</p>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-4">
+                <p className="text-sm text-muted-foreground">Projected Week End</p>
+                <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalProjected)}</p>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-4">
+                <p className="text-sm text-muted-foreground">Remaining Headroom</p>
+                <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalWeeklyBudget - totalProjected)}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </RouteGuard>

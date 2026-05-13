@@ -67,13 +67,24 @@ const statusStyles = {
   failed: 'bg-destructive/10 text-destructive',
 }
 
+const transactionTypeLabels = {
+  deposit: 'Income In',
+  withdrawal: 'Bill Payment',
+  buy: 'Card Spend',
+  sell: 'Refund',
+  fee: 'Bank Fee',
+  dividend: 'Cashback',
+}
+
+const positiveAmountTypes = new Set<Transaction['type']>(['deposit', 'dividend', 'sell'])
+
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
     <div className="col-span-1 lg:col-span-2 rounded-2xl bg-card border border-border/50">
       <div className="flex items-center justify-between p-6 pb-0">
         <div>
           <h3 className="text-lg font-semibold mb-1">Recent Transactions</h3>
-          <p className="text-sm text-muted-foreground">Latest client activity</p>
+          <p className="text-sm text-muted-foreground">Latest spending and cash activity</p>
         </div>
         <Button 
           variant="ghost" 
@@ -120,8 +131,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
-                    {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                    {transaction.asset && ` · ${transaction.asset}`}
+                    {transactionTypeLabels[transaction.type]}
                   </p>
                 </div>
                 
@@ -129,15 +139,14 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                   <p
                     className={cn(
                       'font-semibold tabular-nums',
-                      (transaction.type === 'deposit' || transaction.type === 'dividend')
+                      positiveAmountTypes.has(transaction.type)
                         ? 'text-chart-2'
-                        : (transaction.type === 'withdrawal' || transaction.type === 'fee')
+                        : !positiveAmountTypes.has(transaction.type)
                         ? 'text-destructive'
                         : 'text-foreground'
                     )}
                   >
-                    {(transaction.type === 'deposit' || transaction.type === 'dividend') ? '+' : ''}
-                    {(transaction.type === 'withdrawal' || transaction.type === 'fee') ? '-' : ''}
+                    {positiveAmountTypes.has(transaction.type) ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
                   </p>
                   <p className="text-xs text-muted-foreground">

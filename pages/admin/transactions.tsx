@@ -30,7 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { mockTransactions } from '@/lib/data/mock-transactions'
+import { useUserRole } from '@/hooks/use-user-role'
+import { PFMSCustomerSpending } from '@/components/admin/pfms-customer-spending'
+import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
+import { getVisibleTransactions } from '@/lib/utils/role-filters'
 import { formatCurrency, formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
 
@@ -58,12 +61,23 @@ const statusColors = {
   failed: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
+const transactionLabels = {
+  deposit: 'Income In',
+  withdrawal: 'Bill Payment',
+  buy: 'Card Spend',
+  sell: 'Refund',
+  fee: 'Bank Fee',
+  dividend: 'Cashback',
+}
+
 export default function TransactionsPage() {
+  const { user } = useUserRole()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const visibleTransactions = getVisibleTransactions(user)
 
-  const filteredTransactions = mockTransactions.filter((txn) => {
+  const filteredTransactions = visibleTransactions.filter((txn) => {
     const matchesSearch =
       txn.clientName.toLowerCase().includes(search.toLowerCase()) ||
       (txn.asset?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
@@ -73,16 +87,31 @@ export default function TransactionsPage() {
     return matchesSearch && matchesType && matchesStatus
   })
 
-  const totalDeposits = mockTransactions
+  const totalDeposits = visibleTransactions
     .filter(t => t.type === 'deposit' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)
-  const totalWithdrawals = mockTransactions
+  const totalWithdrawals = visibleTransactions
     .filter(t => t.type === 'withdrawal' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)
-  const totalFees = mockTransactions
+  const totalFees = visibleTransactions
     .filter(t => t.type === 'fee' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0)
-  const pendingCount = mockTransactions.filter(t => t.status === 'pending').length
+  const pendingCount = visibleTransactions.filter(t => t.status === 'pending').length
+
+  if (user.role === 'customer') {
+    const snapshot = getPFMSSnapshotForCustomer(user.clientId ?? 'CLT001')
+
+    return (
+      <>
+        <AdminHeader title="Spending" />
+        <main className="flex-1 overflow-auto p-6">
+          <div className="mx-auto max-w-7xl">
+            <PFMSCustomerSpending snapshot={snapshot} />
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -94,7 +123,11 @@ export default function TransactionsPage() {
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
               <p className="text-muted-foreground">
-                View and manage all client transactions.
+                {user.role === 'manager'
+                  ? 'View and monitor all customer spending activity.'
+                  : user.role === 'fa'
+                    ? 'View spending activity for your assigned customers.'
+                    : 'Track your recent account activity.'}
               </p>
             </div>
             <Button variant="outline">
@@ -123,7 +156,7 @@ export default function TransactionsPage() {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Fees Collected</p>
+                <p className="text-sm text-muted-foreground">Bank Fees</p>
                 <p className="text-2xl font-bold tabular-nums">
                   {formatCurrency(totalFees)}
                 </p>
@@ -133,7 +166,7 @@ export default function TransactionsPage() {
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">Pending</p>
                 <p className="text-2xl font-bold text-warning tabular-nums">
-                  {pendingCount} transactions
+                  {pendingCount} items
                 </p>
               </CardContent>
             </Card>
@@ -144,7 +177,7 @@ export default function TransactionsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by client, asset, or description..."
+                placeholder="Search by customer or description..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -157,12 +190,12 @@ export default function TransactionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="deposit">Deposit</SelectItem>
-                  <SelectItem value="withdrawal">Withdrawal</SelectItem>
-                  <SelectItem value="buy">Buy</SelectItem>
-                  <SelectItem value="sell">Sell</SelectItem>
-                  <SelectItem value="fee">Fee</SelectItem>
-                  <SelectItem value="dividend">Dividend</SelectItem>
+                  <SelectItem value="deposit">Income In</SelectItem>
+                  <SelectItem value="withdrawal">Bill Payment</SelectItem>
+                  <SelectItem value="buy">Card Spend</SelectItem>
+                  <SelectItem value="sell">Refund</SelectItem>
+                  <SelectItem value="fee">Bank Fee</SelectItem>
+                  <SelectItem value="dividend">Cashback</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -186,7 +219,7 @@ export default function TransactionsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Type</TableHead>
-                    <TableHead>Client</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -213,16 +246,20 @@ export default function TransactionsPage() {
                               )}>
                                 <Icon className="size-4" />
                               </div>
-                              <span className="font-medium capitalize">{txn.type}</span>
+                              <span className="font-medium">{transactionLabels[txn.type]}</span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Link
-                              href={`/admin/clients/${txn.clientId}`}
-                              className="font-medium hover:text-primary transition-colors"
-                            >
-                              {txn.clientName}
-                            </Link>
+                            {user.role === 'customer' ? (
+                              <span className="font-medium">{txn.clientName}</span>
+                            ) : (
+                              <Link
+                                href={`/admin/clients/${txn.clientId}`}
+                                className="font-medium hover:text-primary transition-colors"
+                              >
+                                {txn.clientName}
+                              </Link>
+                            )}
                           </TableCell>
                           <TableCell className="text-muted-foreground max-w-[300px] truncate">
                             {txn.description || '-'}
@@ -255,7 +292,7 @@ export default function TransactionsPage() {
 
           {/* Results count */}
           <p className="text-sm text-muted-foreground">
-            Showing {filteredTransactions.length} of {mockTransactions.length} transactions
+            Showing {filteredTransactions.length} of {visibleTransactions.length} transactions
           </p>
         </div>
       </main>
