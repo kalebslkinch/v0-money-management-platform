@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   Landmark,
   CircleDollarSign,
-  TrendingUp,
   Download,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
@@ -41,23 +40,24 @@ import { mockAdvisors } from '@/lib/data/mock-advisors'
 import { formatCurrency, formatDateTime } from '@/lib/utils/format'
 import { exportData } from '@/lib/utils/export'
 import { cn } from '@/lib/utils'
+import type { TransactionType } from '@/lib/types/admin'
 
-const transactionIcons = {
-  deposit: ArrowDownRight,
+const transactionIcons: Record<TransactionType, React.ComponentType<{ className?: string }>> = {
+  income:     CircleDollarSign,
+  expense:    ArrowUpRight,
+  deposit:    ArrowDownRight,
   withdrawal: ArrowUpRight,
-  buy: Landmark,
-  sell: CircleDollarSign,
-  fee: ArrowLeftRight,
-  dividend: TrendingUp,
+  transfer:   ArrowLeftRight,
+  fee:        Landmark,
 }
 
-const transactionColors = {
-  deposit: 'text-success bg-success/10',
+const transactionColors: Record<TransactionType, string> = {
+  income:     'text-success bg-success/10',
+  expense:    'text-destructive bg-destructive/10',
+  deposit:    'text-success bg-success/10',
   withdrawal: 'text-destructive bg-destructive/10',
-  buy: 'text-primary bg-primary/10',
-  sell: 'text-warning bg-warning/10',
-  fee: 'text-muted-foreground bg-muted',
-  dividend: 'text-success bg-success/10',
+  transfer:   'text-primary bg-primary/10',
+  fee:        'text-muted-foreground bg-muted',
 }
 
 const statusColors = {
@@ -66,13 +66,13 @@ const statusColors = {
   failed: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
-const transactionLabels = {
-  deposit: 'Income In',
-  withdrawal: 'Bill Payment',
-  buy: 'Card Spend',
-  sell: 'Refund',
-  fee: 'Bank Fee',
-  dividend: 'Cashback',
+const transactionLabels: Record<TransactionType, string> = {
+  income:     'Income',
+  expense:    'Expense',
+  deposit:    'Deposit',
+  withdrawal: 'Withdrawal',
+  transfer:   'Transfer',
+  fee:        'Bank Fee',
 }
 
 const MS_PER_DAY = 86_400_000
@@ -83,7 +83,7 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [advisorFilter, setAdvisorFilter] = useState<string>('all')
-  const [riskFilter, setRiskFilter] = useState<string>('all')
+  const [budgetFilter, setBudgetFilter] = useState<string>('all')
   const [fromDate, setFromDate] = useState<string>('')
   const [toDate, setToDate] = useState<string>('')
   const visibleTransactions = getVisibleTransactions(user)
@@ -97,7 +97,7 @@ export default function TransactionsPage() {
     const matchesStatus = statusFilter === 'all' || txn.status === statusFilter
     const client = mockClients.find(c => c.id === txn.clientId)
     const matchesAdvisor = advisorFilter === 'all' || client?.advisorId === advisorFilter
-    const matchesRisk = riskFilter === 'all' || client?.riskLevel === riskFilter
+    const matchesRisk = budgetFilter === 'all' || client?.budgetHealth === budgetFilter
     const txnTime = new Date(txn.date).getTime()
     const fromTime = fromDate ? new Date(fromDate).getTime() : -Infinity
     // Add one day in ms so the "to" date is inclusive of the entire selected day
@@ -228,12 +228,12 @@ export default function TransactionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="deposit">Income In</SelectItem>
-                  <SelectItem value="withdrawal">Bill Payment</SelectItem>
-                  <SelectItem value="buy">Card Spend</SelectItem>
-                  <SelectItem value="sell">Refund</SelectItem>
+                  <SelectItem value="income">Income</SelectItem>
+                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="deposit">Deposit</SelectItem>
+                  <SelectItem value="withdrawal">Withdrawal</SelectItem>
+                  <SelectItem value="transfer">Transfer</SelectItem>
                   <SelectItem value="fee">Bank Fee</SelectItem>
-                  <SelectItem value="dividend">Cashback</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -262,15 +262,15 @@ export default function TransactionsPage() {
                   </SelectContent>
                 </Select>
               )}
-              <Select value={riskFilter} onValueChange={setRiskFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Client risk" />
+              <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Budget health" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Risk</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="all">All Health</SelectItem>
+                  <SelectItem value="on_track">On Track</SelectItem>
+                  <SelectItem value="at_risk">At Risk</SelectItem>
+                  <SelectItem value="over_budget">Over Budget</SelectItem>
                 </SelectContent>
               </Select>
               <Input
@@ -352,11 +352,11 @@ export default function TransactionsPage() {
                           </TableCell>
                           <TableCell className={cn(
                             'text-right font-semibold tabular-nums',
-                            txn.type === 'deposit' || txn.type === 'dividend' ? 'text-success' :
-                            txn.type === 'withdrawal' || txn.type === 'fee' ? 'text-destructive' : ''
+                            txn.type === 'income' || txn.type === 'deposit' ? 'text-success' :
+                            txn.type === 'expense' || txn.type === 'withdrawal' || txn.type === 'fee' ? 'text-destructive' : ''
                           )}>
-                            {txn.type === 'deposit' || txn.type === 'dividend' ? '+' : ''}
-                            {txn.type === 'withdrawal' || txn.type === 'fee' ? '-' : ''}
+                            {txn.type === 'income' || txn.type === 'deposit' ? '+' : ''}
+                            {txn.type === 'expense' || txn.type === 'withdrawal' || txn.type === 'fee' ? '-' : ''}
                             {formatCurrency(txn.amount)}
                           </TableCell>
                         </TableRow>

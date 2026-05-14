@@ -175,6 +175,6 @@ export function getClientsByStatus(status: Client['status']): Client[] {
   return mockClients.filter(client => client.status === status)
 }
 
-export function getClientsByRiskLevel(riskLevel: Client['riskLevel']): Client[] {
-  return mockClients.filter(client => client.riskLevel === riskLevel)
+export function getClientsByBudgetHealth(budgetHealth: Client['budgetHealth']): Client[] {
+  return mockClients.filter(client => client.budgetHealth === budgetHealth)
 }
