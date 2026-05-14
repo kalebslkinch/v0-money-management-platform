@@ -7,28 +7,38 @@ import {
   ArrowLeftRight,
   Landmark,
   CircleDollarSign,
-  TrendingUp,
+  RefreshCw,
   ArrowRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, formatDateTime } from '@/lib/utils/format'
-import type { Transaction } from '@/lib/types/admin'
+import type { Transaction, TransactionType } from '@/lib/types/admin'
 import { cn } from '@/lib/utils'
 
 interface RecentTransactionsProps {
   transactions: Transaction[]
 }
 
-const transactionIcons = {
-  deposit: ArrowDownRight,
+const transactionIcons: Record<TransactionType, React.ComponentType<{ className?: string }>> = {
+  income:     CircleDollarSign,
+  expense:    ArrowUpRight,
+  deposit:    ArrowDownRight,
   withdrawal: ArrowUpRight,
-  buy: Landmark,
-  sell: CircleDollarSign,
-  fee: ArrowLeftRight,
-  dividend: TrendingUp,
+  transfer:   ArrowLeftRight,
+  fee:        Landmark,
 }
 
-const transactionStyles = {
+const transactionStyles: Record<TransactionType, { icon: string; bg: string; border: string }> = {
+  income: {
+    icon: 'text-chart-2',
+    bg: 'bg-chart-2/10',
+    border: 'border-chart-2/20',
+  },
+  expense: {
+    icon: 'text-destructive',
+    bg: 'bg-destructive/10',
+    border: 'border-destructive/20',
+  },
   deposit: {
     icon: 'text-chart-2',
     bg: 'bg-chart-2/10',
@@ -39,25 +49,15 @@ const transactionStyles = {
     bg: 'bg-destructive/10',
     border: 'border-destructive/20',
   },
-  buy: {
+  transfer: {
     icon: 'text-primary',
     bg: 'bg-primary/10',
     border: 'border-primary/20',
-  },
-  sell: {
-    icon: 'text-chart-4',
-    bg: 'bg-chart-4/10',
-    border: 'border-chart-4/20',
   },
   fee: {
     icon: 'text-muted-foreground',
     bg: 'bg-muted',
     border: 'border-border',
-  },
-  dividend: {
-    icon: 'text-chart-2',
-    bg: 'bg-chart-2/10',
-    border: 'border-chart-2/20',
   },
 }
 
@@ -67,16 +67,16 @@ const statusStyles = {
   failed: 'bg-destructive/10 text-destructive',
 }
 
-const transactionTypeLabels = {
-  deposit: 'Income In',
-  withdrawal: 'Bill Payment',
-  buy: 'Card Spend',
-  sell: 'Refund',
-  fee: 'Bank Fee',
-  dividend: 'Cashback',
+const transactionTypeLabels: Record<TransactionType, string> = {
+  income:     'Income',
+  expense:    'Expense',
+  deposit:    'Deposit',
+  withdrawal: 'Withdrawal',
+  transfer:   'Transfer',
+  fee:        'Bank Fee',
 }
 
-const positiveAmountTypes = new Set<Transaction['type']>(['deposit', 'dividend', 'sell'])
+const positiveAmountTypes = new Set<Transaction['type']>(['income', 'deposit'])
 
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (

@@ -4,8 +4,8 @@ export interface Client {
   name: string
   email: string
   phone: string
-  portfolioValue: number
-  riskLevel: 'low' | 'moderate' | 'high'
+  monthlyBudget: number
+  budgetHealth: 'on_track' | 'at_risk' | 'over_budget'
   status: 'active' | 'inactive' | 'pending'
   joinedDate: string
   lastActivity: string
@@ -33,14 +33,14 @@ export interface Advisor {
   status: AdvisorStatus
   joinDate: string
   clientIds: string[]
-  totalAUM: number
+  managedBudgetTotal: number
   performance: AdvisorPerformance
   activeCaseCount: number
   avatar?: string
 }
 
 // Case Types
-export type CaseType = 'onboarding' | 'annual_review' | 'compliance' | 'complaint' | 'rebalance' | 'kyc_update' | 'general'
+export type CaseType = 'onboarding' | 'annual_review' | 'compliance' | 'complaint' | 'budget_review' | 'kyc_update' | 'general'
 export type CaseStatus = 'open' | 'in_progress' | 'pending_review' | 'resolved' | 'escalated'
 export type CasePriority = 'low' | 'medium' | 'high' | 'critical'
 export type CaseNoteType = 'comment' | 'status_change' | 'escalation'
@@ -73,7 +73,7 @@ export interface Case {
 }
 
 // Transaction Types
-export type TransactionType = 'deposit' | 'withdrawal' | 'buy' | 'sell' | 'fee' | 'dividend'
+export type TransactionType = 'income' | 'expense' | 'deposit' | 'withdrawal' | 'transfer' | 'fee'
 export type TransactionStatus = 'completed' | 'pending' | 'failed'
 
 export interface Transaction {
@@ -126,25 +126,25 @@ export interface RevenueData {
 export interface ClientGrowthData {
   month: string
   clients: number
-  aum: number
+  onTrack: number
 }
 
-export interface RiskDistribution {
-  level: 'low' | 'moderate' | 'high'
+export interface BudgetHealthDistribution {
+  level: 'on_track' | 'at_risk' | 'over_budget'
   count: number
   percentage: number
 }
 
 // Dashboard KPI Types
 export interface KPIData {
-  totalAUM: number
-  aumChange: number
+  clientsOnTrack: number
+  onTrackChange: number
   activeClients: number
   clientsChange: number
   monthlyRevenue: number
   revenueChange: number
-  avgReturn: number
-  returnChange: number
+  avgBudgetAdherence: number
+  adherenceChange: number
 }
 
 // Activity Types
@@ -167,4 +167,61 @@ export interface Alert {
   clientId?: string
   clientName?: string
   timestamp: string
+}
+
+// ─── Team-level anonymised insight types ─────────────────────────────────────
+
+/** Budget adherence summary for a named cohort (advisor team or risk tier) */
+export interface CohortBudgetSummary {
+  /** Human-readable label, e.g. "ADV001 Team" or "High Risk" */
+  label: string
+  /** Total number of clients in cohort */
+  clientCount: number
+  /** Clients whose projected spend ≤ total budget */
+  onTrackCount: number
+  /** Percentage on track (0-100) */
+  onTrackPct: number
+  /** Total weekly budget across cohort */
+  totalBudget: number
+  /** Total spent so far this week */
+  totalSpent: number
+  /** Total projected end-of-week spend */
+  totalProjected: number
+  /** Average income utilisation percentage (spent / availableToSpend * 100) */
+  avgIncomeUtilisation: number
+}
+
+/** Per-category pressure across a set of snapshots */
+export interface CategoryPressurePoint {
+  category: string
+  /** Total budget across all clients in scope */
+  totalBudget: number
+  /** Total projected spend */
+  totalProjected: number
+  /** Over-budget ratio: (projected - budget) / budget, can be negative (under) */
+  overspendRatio: number
+  /** Count of clients projected to exceed this category budget */
+  overBudgetCount: number
+}
+
+/** One point on the team budget health trend (week-over-week) */
+export interface TeamHealthTrendPoint {
+  weekLabel: string
+  /** Advisor 1 team on-track percentage */
+  adv001Pct: number
+  /** Advisor 2 team on-track percentage */
+  adv002Pct: number
+  /** Overall team on-track percentage */
+  overallPct: number
+}
+
+/** Top-level shape consumed by the team insights UI */
+export interface TeamInsightData {
+  advisorTeams: CohortBudgetSummary[]
+  riskCohorts: CohortBudgetSummary[]
+  categoryPressure: CategoryPressurePoint[]
+  healthTrend: TeamHealthTrendPoint[]
+  overallOnTrackPct: number
+  totalClientsAnalysed: number
+  topPressureCategory: string
 }

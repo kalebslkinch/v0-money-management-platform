@@ -77,6 +77,83 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.28, weekly: 1.2, monthly: 2.5, yearly: 10.8 },
   },
+  // CLT005 – Amanda Foster (low risk, $890k, pending onboarding)
+  CLT005: {
+    clientId: 'CLT005',
+    totalValue: 890000,
+    holdings: [
+      { asset: 'Treasury Bonds', ticker: 'TLT', type: 'bond', value: 356000, allocation: 40.0, change: 3.1 },
+      { asset: 'Municipal Bonds', ticker: 'MUB', type: 'bond', value: 178000, allocation: 20.0, change: 2.6 },
+      { asset: 'Total Stock Market ETF', ticker: 'VTI', type: 'etf', value: 133500, allocation: 15.0, change: 9.5 },
+      { asset: 'Short-Term Bond Fund', ticker: 'SHY', type: 'bond', value: 133500, allocation: 15.0, change: 1.2 },
+      { asset: 'Cash & Equivalents', type: 'cash', value: 89000, allocation: 10.0, change: 0 },
+    ],
+    performance: { daily: 0.08, weekly: 0.4, monthly: 0.9, yearly: 4.8 },
+  },
+  // CLT007 – Jennifer Walsh (moderate risk, $1.65m; equity drifted to 58% per CASE004)
+  CLT007: {
+    clientId: 'CLT007',
+    totalValue: 1650000,
+    holdings: [
+      { asset: 'S&P 500 ETF', ticker: 'SPY', type: 'etf', value: 495000, allocation: 30.0, change: 8.5 },
+      { asset: 'Growth Fund', ticker: 'VUG', type: 'etf', value: 264000, allocation: 16.0, change: 15.2 },
+      { asset: 'Microsoft Corp.', ticker: 'MSFT', type: 'stock', value: 198000, allocation: 12.0, change: 15.3 },
+      { asset: 'Bond Fund', ticker: 'AGG', type: 'bond', value: 462000, allocation: 28.0, change: 2.5 },
+      { asset: 'Cash & Equivalents', type: 'cash', value: 231000, allocation: 14.0, change: 0 },
+    ],
+    performance: { daily: 0.52, weekly: 2.1, monthly: 4.5, yearly: 18.2 },
+  },
+  // CLT008 – Christopher Lee (low risk, $980k, inactive)
+  CLT008: {
+    clientId: 'CLT008',
+    totalValue: 980000,
+    holdings: [
+      { asset: 'Treasury Bonds', ticker: 'TLT', type: 'bond', value: 392000, allocation: 40.0, change: 3.1 },
+      { asset: 'Bond Fund', ticker: 'AGG', type: 'bond', value: 245000, allocation: 25.0, change: 2.5 },
+      { asset: 'Total Stock Market ETF', ticker: 'VTI', type: 'etf', value: 196000, allocation: 20.0, change: 9.5 },
+      { asset: 'Cash & Equivalents', type: 'cash', value: 147000, allocation: 15.0, change: 0 },
+    ],
+    performance: { daily: 0.10, weekly: 0.5, monthly: 1.1, yearly: 5.4 },
+  },
+  // CLT009 – Maria Garcia (moderate risk, $3.1m)
+  CLT009: {
+    clientId: 'CLT009',
+    totalValue: 3100000,
+    holdings: [
+      { asset: 'Vanguard S&P 500 ETF', ticker: 'VOO', type: 'etf', value: 775000, allocation: 25.0, change: 8.2 },
+      { asset: 'Microsoft Corp.', ticker: 'MSFT', type: 'stock', value: 465000, allocation: 15.0, change: 15.3 },
+      { asset: 'Total Stock Market ETF', ticker: 'VTI', type: 'etf', value: 620000, allocation: 20.0, change: 9.5 },
+      { asset: 'Bond Fund', ticker: 'AGG', type: 'bond', value: 620000, allocation: 20.0, change: 2.5 },
+      { asset: 'Real Estate Fund', ticker: 'VNQ', type: 'real-estate', value: 310000, allocation: 10.0, change: -1.5 },
+      { asset: 'Cash & Equivalents', type: 'cash', value: 310000, allocation: 10.0, change: 0 },
+    ],
+    performance: { daily: 0.38, weekly: 1.6, monthly: 3.1, yearly: 13.2 },
+  },
+  // CLT011 – Patricia Moore (low risk, $560k)
+  CLT011: {
+    clientId: 'CLT011',
+    totalValue: 560000,
+    holdings: [
+      { asset: 'Treasury Bonds', ticker: 'TLT', type: 'bond', value: 224000, allocation: 40.0, change: 3.1 },
+      { asset: 'Municipal Bonds', ticker: 'MUB', type: 'bond', value: 168000, allocation: 30.0, change: 2.6 },
+      { asset: 'Bond Fund', ticker: 'AGG', type: 'bond', value: 112000, allocation: 20.0, change: 2.5 },
+      { asset: 'Cash & Equivalents', type: 'cash', value: 56000, allocation: 10.0, change: 0 },
+    ],
+    performance: { daily: 0.06, weekly: 0.3, monthly: 0.7, yearly: 3.8 },
+  },
+  // CLT012 – Daniel Brown (moderate risk, $2.1m)
+  CLT012: {
+    clientId: 'CLT012',
+    totalValue: 2100000,
+    holdings: [
+      { asset: 'S&P 500 ETF', ticker: 'SPY', type: 'etf', value: 630000, allocation: 30.0, change: 8.5 },
+      { asset: 'International ETF', ticker: 'VXUS', type: 'etf', value: 315000, allocation: 15.0, change: 4.2 },
+      { asset: 'Apple Inc.', ticker: 'AAPL', type: 'stock', value: 315000, allocation: 15.0, change: 12.5 },
+      { asset: 'Bond Fund', ticker: 'AGG', type: 'bond', value: 630000, allocation: 30.0, change: 2.5 },
+      { asset: 'Cash & Equivalents', type: 'cash', value: 210000, allocation: 10.0, change: 0 },
+    ],
+    performance: { daily: 0.32, weekly: 1.4, monthly: 2.9, yearly: 11.8 },
+  },
 }
 
 export function getPortfolioByClientId(clientId: string): Portfolio | undefined {

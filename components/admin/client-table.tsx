@@ -43,10 +43,10 @@ const statusStyles = {
   pending: 'bg-chart-4/10 text-chart-4',
 }
 
-const riskStyles = {
-  low: 'bg-chart-2/10 text-chart-2',
-  moderate: 'bg-chart-4/10 text-chart-4',
-  high: 'bg-destructive/10 text-destructive',
+const healthStyles = {
+  on_track: 'bg-chart-2/10 text-chart-2',
+  at_risk: 'bg-chart-4/10 text-chart-4',
+  over_budget: 'bg-destructive/10 text-destructive',
 }
 
 export function ClientTable({
@@ -58,8 +58,8 @@ export function ClientTable({
   const isCustomer = !showAdvisor && !allowActions
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [riskFilter, setRiskFilter] = useState<string>('all')
-  const [sortField, setSortField] = useState<'name' | 'portfolioValue' | 'lastActivity'>('name')
+  const [healthFilter, setHealthFilter] = useState<string>('all')
+  const [sortField, setSortField] = useState<'name' | 'monthlyBudget' | 'lastActivity'>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const filteredClients = clients
@@ -68,22 +68,22 @@ export function ClientTable({
         client.name.toLowerCase().includes(search.toLowerCase()) ||
         client.email.toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === 'all' || client.status === statusFilter
-      const matchesRisk = riskFilter === 'all' || client.riskLevel === riskFilter
-      return matchesSearch && matchesStatus && matchesRisk
+      const matchesHealth = healthFilter === 'all' || client.budgetHealth === healthFilter
+      return matchesSearch && matchesStatus && matchesHealth
     })
     .sort((a, b) => {
       let comparison = 0
       if (sortField === 'name') {
         comparison = a.name.localeCompare(b.name)
-      } else if (sortField === 'portfolioValue') {
-        comparison = a.portfolioValue - b.portfolioValue
+      } else if (sortField === 'monthlyBudget') {
+        comparison = a.monthlyBudget - b.monthlyBudget
       } else if (sortField === 'lastActivity') {
         comparison = new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime()
       }
       return sortDirection === 'asc' ? comparison : -comparison
     })
 
-  const handleSort = (field: 'name' | 'portfolioValue' | 'lastActivity') => {
+  const handleSort = (field: 'name' | 'monthlyBudget' | 'lastActivity') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
@@ -121,16 +121,16 @@ export function ClientTable({
               <SelectItem value="pending">Pending</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={riskFilter} onValueChange={setRiskFilter}>
+          <Select value={healthFilter} onValueChange={setHealthFilter}>
             <SelectTrigger className="w-[130px] rounded-xl">
               <Filter className="size-3.5 mr-1.5 text-muted-foreground" />
-              <SelectValue placeholder="Risk" />
+              <SelectValue placeholder="Health" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Risk</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="moderate">Moderate</SelectItem>
-              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="all">All Health</SelectItem>
+              <SelectItem value="on_track">On Track</SelectItem>
+              <SelectItem value="at_risk">At Risk</SelectItem>
+              <SelectItem value="over_budget">Over Budget</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -160,14 +160,14 @@ export function ClientTable({
                 <TableHead>Contact</TableHead>
                 <TableHead
                   className="cursor-pointer select-none text-right"
-                  onClick={() => handleSort('portfolioValue')}
+                  onClick={() => handleSort('monthlyBudget')}
                 >
                   <span className="flex items-center justify-end gap-1.5">
-                    Portfolio Value
-                    <ArrowUpDown className={cn('size-3.5 text-muted-foreground', sortField === 'portfolioValue' && 'text-foreground')} />
+                    Monthly Budget
+                    <ArrowUpDown className={cn('size-3.5 text-muted-foreground', sortField === 'monthlyBudget' && 'text-foreground')} />
                   </span>
                 </TableHead>
-                <TableHead>Risk</TableHead>
+                <TableHead>Health</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead
                   className="cursor-pointer select-none"
@@ -210,11 +210,11 @@ export function ClientTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatCurrency(client.portfolioValue)}
+                    {formatCurrency(client.monthlyBudget)}
                   </TableCell>
                   <TableCell>
-                    <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize', riskStyles[client.riskLevel])}>
-                      {client.riskLevel}
+                    <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize', healthStyles[client.budgetHealth])}>
+                      {client.budgetHealth.replace('_', ' ')}
                     </span>
                   </TableCell>
                   <TableCell>

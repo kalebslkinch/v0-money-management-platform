@@ -3,6 +3,9 @@ import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { StoreBootstrap } from '@/components/admin/store-bootstrap'
+import { ReminderScheduler } from '@/components/admin/reminder-scheduler'
+import { BackgroundEventEngineProvider } from '@/components/admin/background-event-engine'
 import {
   createDefaultUser,
   PMFS_USER_STORAGE_KEY,
@@ -22,6 +25,9 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           {children}
         </SidebarInset>
       </SidebarProvider>
+      <StoreBootstrap />
+      <ReminderScheduler />
+      <BackgroundEventEngineProvider />
     </main>
   );
 }
@@ -40,14 +46,9 @@ export default function App({ Component, pageProps, router }: AppProps) {
   }, [])
 
   return (
-    <>
-      <style jsx global>{`
-        html, body {
-          font-family: ${lato.style.fontFamily}, sans-serif;
-        }
-      `}</style>
+    <div className={lato.className}>
       {isAdminPage ? <AdminLayout>{content}</AdminLayout> : content}
       {process.env.NODE_ENV === 'production' && <Analytics />}
-    </>
+    </div>
   )
 }

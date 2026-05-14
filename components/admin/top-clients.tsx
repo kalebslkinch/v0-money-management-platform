@@ -1,13 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { TrendingUp, Crown } from 'lucide-react'
+import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { formatCurrency, formatPercentage, getInitials } from '@/lib/utils/format'
+import { formatCurrency, getInitials } from '@/lib/utils/format'
 import type { Client } from '@/lib/types/admin'
 
 interface TopClientsProps {
-  clients: (Client & { ytdReturn: number })[]
+  clients: (Client & { budgetVariance: number })[]
 }
 
 const rankColors = [
@@ -21,10 +21,10 @@ export function TopClients({ clients }: TopClientsProps) {
     <div className="rounded-2xl bg-card border border-border/50">
       <div className="p-6 pb-0">
         <div className="flex items-center gap-2 mb-1">
-          <Crown className="size-5 text-chart-4" />
-          <h3 className="text-lg font-semibold">Top Performers</h3>
+          <AlertTriangle className="size-5 text-warning" />
+          <h3 className="text-lg font-semibold">Needs Attention</h3>
         </div>
-        <p className="text-sm text-muted-foreground">By portfolio value</p>
+        <p className="text-sm text-muted-foreground">Clients most over or near budget</p>
       </div>
       
       <div className="p-6 pt-4">
@@ -56,13 +56,23 @@ export function TopClients({ clients }: TopClientsProps) {
                   {client.name}
                 </p>
                 <p className="text-xs text-muted-foreground font-mono">
-                  {formatCurrency(client.portfolioValue, true)}
+                  {formatCurrency(client.monthlyBudget, true)}/mo
                 </p>
               </div>
               
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-chart-2/10 text-chart-2 text-xs font-semibold">
-                <TrendingUp className="size-3" />
-                {formatPercentage(client.ytdReturn)}
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                client.budgetVariance < 0
+                  ? 'bg-destructive/10 text-destructive'
+                  : client.budgetVariance < 5
+                  ? 'bg-chart-4/10 text-chart-4'
+                  : 'bg-chart-2/10 text-chart-2'
+              }`}>
+                {client.budgetVariance < 0 ? (
+                  <TrendingDown className="size-3" />
+                ) : (
+                  <TrendingUp className="size-3" />
+                )}
+                {client.budgetVariance > 0 ? '+' : ''}{client.budgetVariance}%
               </div>
             </Link>
           ))}

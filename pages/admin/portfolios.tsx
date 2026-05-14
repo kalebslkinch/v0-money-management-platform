@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { PFMSCustomerBudgets } from '@/components/admin/pfms-customer-budgets'
+import { PrivacyNotice } from '@/components/admin/privacy-notice'
 import { useUserRole } from '@/hooks/use-user-role'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 import { getVisibleClients } from '@/lib/utils/role-filters'
@@ -22,7 +23,8 @@ export default function PortfoliosPage() {
       <>
         <AdminHeader title="Budgets" />
         <main className="flex-1 overflow-auto p-6">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-7xl space-y-6">
+            <PrivacyNotice />
             <PFMSCustomerBudgets snapshot={snapshot} />
           </div>
         </main>

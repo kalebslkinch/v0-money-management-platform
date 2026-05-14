@@ -64,20 +64,40 @@ export interface DashboardState {
 
 // ─── Widget Size → Grid Column Spans ─────────────────────────────────────────
 
-/** Maps WidgetSize to how many columns the widget spans in the 12-col grid */
+/** Maps WidgetSize to how many columns the widget spans in the 4-col grid */
 export const WIDGET_COLUMN_SPANS: Record<WidgetSize, number> = {
-  small: 4,
-  medium: 6,
-  large: 8,
-  full: 12,
+  small: 1,   // ¼ width
+  medium: 2,  // ½ width
+  large: 3,   // ¾ width
+  full: 4,    // full width
 }
 
 /** Human-readable labels for the size picker */
 export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
-  small: 'Small',
-  medium: 'Medium',
-  large: 'Large',
-  full: 'Full Width',
+  small: '1×',
+  medium: '2×',
+  large: '3×',
+  full: 'Full',
 }
 
 export const WIDGET_SIZES: WidgetSize[] = ['small', 'medium', 'large', 'full']
+
+// ─── Daily Briefing ───────────────────────────────────────────────────────────
+
+export type BriefingPriority = 'critical' | 'high' | 'medium' | 'info'
+
+/** A single prioritised item surfaced in the daily briefing view */
+export interface BriefingItem {
+  id: string
+  priority: BriefingPriority
+  /** Lucide icon name */
+  icon: string
+  title: string
+  description: string
+  /** Short contextual badge, e.g. "Due Jan 31" or "2 alerts" */
+  badge?: string
+  /** The widget to scroll/jump to when the user clicks the item's CTA */
+  linkedWidgetId?: WidgetId
+  /** Label for the action button */
+  actionLabel?: string
+}

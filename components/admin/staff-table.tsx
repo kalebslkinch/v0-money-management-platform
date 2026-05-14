@@ -73,7 +73,7 @@ export function StaffTable({ advisors }: StaffTableProps) {
               <TableHead>Advisor</TableHead>
               <TableHead>Role</TableHead>
               <TableHead className="text-right">Clients</TableHead>
-              <TableHead className="text-right">AUM Managed</TableHead>
+              <TableHead className="text-right">Budget Managed</TableHead>
               <TableHead className="text-right">Open Cases</TableHead>
               <TableHead className="text-right">Monthly Return</TableHead>
               <TableHead>Status</TableHead>
@@ -111,7 +111,7 @@ export function StaffTable({ advisors }: StaffTableProps) {
                     {advisor.clientIds.length}
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {advisor.totalAUM > 0 ? formatCurrency(advisor.totalAUM, true) : '—'}
+                    {advisor.managedBudgetTotal > 0 ? formatCurrency(advisor.managedBudgetTotal, true) : '—'}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className={cn(

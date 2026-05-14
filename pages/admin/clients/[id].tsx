@@ -1,6 +1,6 @@
 import type { GetStaticPaths, GetStaticProps } from 'next'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import {
   Mail,
@@ -10,6 +10,7 @@ import {
   TrendingDown,
   ArrowLeft,
   MoreHorizontal,
+  Pencil,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -35,7 +36,9 @@ import { mockClients, getClientById } from '@/lib/data/mock-clients'
 import { getTransactionsByClientId } from '@/lib/data/mock-transactions'
 import { getPortfolioByClientId } from '@/lib/data/mock-portfolios'
 import { useUserRole } from '@/hooks/use-user-role'
+import { useClientOverrides, applyClientOverride } from '@/hooks/use-client-overrides'
 import { canAccessClient } from '@/lib/utils/role-filters'
+import { EditClientDialog } from '@/components/admin/edit-client-dialog'
 import { formatCurrency, formatDate, formatPercentage, getInitials, formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
 import type { Client, Transaction, Portfolio } from '@/lib/types/admin'
@@ -101,10 +104,14 @@ import { PFMSCustomerBudgets } from '@/components/admin/pfms-customer-budgets'
 import { PFMSCustomerSpending } from '@/components/admin/pfms-customer-spending'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 
-export default function ClientDetailPage({ client, transactions, portfolio }: ClientDetailPageProps) {
+export default function ClientDetailPage({ client: serverClient, transactions, portfolio }: ClientDetailPageProps) {
   const router = useRouter()
   const { user, isHydrated } = useUserRole()
+  const { overrides, update: updateOverride } = useClientOverrides()
+  const client = applyClientOverride(serverClient, overrides)
   const hasAccess = canAccessClient(user, client)
+  const canEditClient = user.role === 'manager' || (user.role === 'fa' && client.advisorId === user.advisorId)
+  const [editOpen, setEditOpen] = useState(false)
 
   useEffect(() => {
     if (!isHydrated || hasAccess) return
@@ -209,7 +216,7 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
                     </p>
                   )}
                 </div>
-                {user.role === 'manager' && (
+                {canEditClient && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="icon" className="shrink-0 rounded-xl">
@@ -217,6 +224,10 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                        <Pencil className="mr-2 size-4" />
+                        Edit Info
+                      </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <a href={`mailto:${client.email}`}>
                           <Mail className="mr-2 size-4" />
@@ -372,11 +383,71 @@ export default function ClientDetailPage({ client, transactions, portfolio }: Cl
             </CardContent>
           </Card>
 
-          {/* PFMS Budget & Spending */}
-          <PFMSCustomerBudgets snapshot={pfmsSnapshot} />
-          <PFMSCustomerSpending snapshot={pfmsSnapshot} />
+          {/* PFMS Budget & Spending — gated by client consent for FAs (SRD-A02) */}
+          <ClientFinancialSummaryGate
+            clientId={client.id}
+            clientName={client.name}
+            viewerRole={user.role}
+            snapshot={pfmsSnapshot}
+          />
         </div>
       </main>
+      <EditClientDialog client={client} open={editOpen} onOpenChange={setEditOpen} />
+    </>
+  )
+}
+
+import { useDataSharingConsent } from '@/hooks/use-store'
+
+interface ClientFinancialSummaryGateProps {
+  clientId: string
+  clientName: string
+  viewerRole: 'manager' | 'fa' | 'customer'
+  snapshot: ReturnType<typeof getPFMSSnapshotForCustomer>
+}
+
+function ClientFinancialSummaryGate({
+  clientId,
+  clientName,
+  viewerRole,
+  snapshot,
+}: ClientFinancialSummaryGateProps) {
+  const { consent } = useDataSharingConsent(clientId)
+
+  if (viewerRole === 'fa' && !(consent.shareWithAdvisor && (consent.shareSpending || consent.shareBudgets))) {
+    return (
+      <Card className="rounded-2xl border-border/50">
+        <CardHeader>
+          <CardTitle>Financial Summary</CardTitle>
+          <CardDescription>
+            Awaiting consent from {clientName} to view budgets and spending detail.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          The client has not enabled financial summary sharing with advisers. Ask them to update
+          their{' '}
+          <Link href="/admin/privacy" className="text-primary hover:underline">
+            Privacy & Sharing
+          </Link>{' '}
+          settings to grant access.
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <>
+      {viewerRole === 'fa' && (
+        <Badge variant="outline" className="text-xs w-fit">
+          Viewing financial summary with client consent
+        </Badge>
+      )}
+      {(viewerRole === 'manager' || consent.shareBudgets) && (
+        <PFMSCustomerBudgets snapshot={snapshot} />
+      )}
+      {(viewerRole === 'manager' || consent.shareSpending) && (
+        <PFMSCustomerSpending snapshot={snapshot} />
+      )}
     </>
   )
 }

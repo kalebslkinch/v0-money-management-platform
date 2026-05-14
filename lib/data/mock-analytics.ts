@@ -1,35 +1,35 @@
 import type { KPIData, RevenueData, ClientGrowthData, Activity, Alert } from '@/lib/types/admin'
 import { mockClients } from './mock-clients'
 
-// Calculate KPIs from mock data
 export const kpiData: KPIData = {
-  totalAUM: mockClients.reduce((sum, client) => sum + client.portfolioValue, 0),
-  aumChange: 8.5,
+  clientsOnTrack: mockClients.filter(c => c.budgetHealth === 'on_track').length,
+  onTrackChange: 8.5,
   activeClients: mockClients.filter(c => c.status === 'active').length,
   clientsChange: 12,
   monthlyRevenue: 125000,
   revenueChange: 5.2,
-  avgReturn: 12.4,
-  returnChange: 2.1,
+  avgBudgetAdherence: 72,
+  adherenceChange: 3.5,
 }
 
-// Monthly performance data for charts
-export const portfolioPerformanceData = [
-  { month: 'Aug', value: 28500000, benchmark: 27800000 },
-  { month: 'Sep', value: 29200000, benchmark: 28100000 },
-  { month: 'Oct', value: 28800000, benchmark: 27500000 },
-  { month: 'Nov', value: 30500000, benchmark: 29000000 },
-  { month: 'Dec', value: 32100000, benchmark: 30200000 },
-  { month: 'Jan', value: 34180000, benchmark: 31500000 },
+// Monthly spending vs budget totals across all clients
+export const budgetAdherenceData = [
+  { month: 'Aug', value: 27800, benchmark: 31600 },
+  { month: 'Sep', value: 28400, benchmark: 31600 },
+  { month: 'Oct', value: 30100, benchmark: 31600 },
+  { month: 'Nov', value: 28900, benchmark: 31600 },
+  { month: 'Dec', value: 29700, benchmark: 31600 },
+  { month: 'Jan', value: 33200, benchmark: 31600 },
 ]
 
-// Asset allocation data
-export const assetAllocationData = [
-  { name: 'Stocks', value: 45, fill: 'var(--color-chart-1)' },
-  { name: 'Bonds', value: 25, fill: 'var(--color-chart-2)' },
-  { name: 'ETFs', value: 15, fill: 'var(--color-chart-3)' },
-  { name: 'Real Estate', value: 10, fill: 'var(--color-chart-4)' },
-  { name: 'Cash', value: 5, fill: 'var(--color-chart-5)' },
+// Average spending category breakdown across all clients
+export const spendingBreakdownData = [
+  { name: 'Housing', value: 35, fill: 'var(--color-chart-1)' },
+  { name: 'Groceries', value: 22, fill: 'var(--color-chart-2)' },
+  { name: 'Transport', value: 15, fill: 'var(--color-chart-3)' },
+  { name: 'Entertainment', value: 13, fill: 'var(--color-chart-4)' },
+  { name: 'Utilities', value: 10, fill: 'var(--color-chart-5)' },
+  { name: 'Other', value: 5, fill: 'var(--color-chart-1)' },
 ]
 
 // Revenue data for charts
@@ -44,19 +44,18 @@ export const revenueData: RevenueData[] = [
 
 // Client growth data
 export const clientGrowthData: ClientGrowthData[] = [
-  { month: 'Aug', clients: 8, aum: 28500000 },
-  { month: 'Sep', clients: 9, aum: 29200000 },
-  { month: 'Oct', clients: 9, aum: 28800000 },
-  { month: 'Nov', clients: 10, aum: 30500000 },
-  { month: 'Dec', clients: 11, aum: 32100000 },
-  { month: 'Jan', clients: 12, aum: 34180000 },
+  { month: 'Aug', clients: 8, onTrack: 6 },
+  { month: 'Sep', clients: 9, onTrack: 7 },
+  { month: 'Oct', clients: 9, onTrack: 6 },
+  { month: 'Nov', clients: 10, onTrack: 7 },
+  { month: 'Dec', clients: 11, onTrack: 8 },
+  { month: 'Jan', clients: 12, onTrack: 6 },
 ]
 
-// Risk distribution
-export const riskDistributionData = [
-  { level: 'Low', count: 4, percentage: 33, fill: 'var(--color-chart-2)' },
-  { level: 'Moderate', count: 5, percentage: 42, fill: 'var(--color-chart-4)' },
-  { level: 'High', count: 3, percentage: 25, fill: 'var(--color-chart-1)' },
+export const budgetHealthData = [
+  { level: 'On Track', count: 6, percentage: 50, fill: 'var(--color-chart-2)' },
+  { level: 'At Risk',  count: 3, percentage: 25, fill: 'var(--color-chart-4)' },
+  { level: 'Over Budget', count: 3, percentage: 25, fill: 'var(--color-chart-1)' },
 ]
 
 // Recent activities
@@ -82,8 +81,8 @@ export const recentActivities: Activity[] = [
   {
     id: 'ACT003',
     type: 'alert',
-    title: 'Portfolio rebalance needed',
-    description: 'Robert Thompson exceeded risk threshold',
+    title: 'Overspending alert flagged',
+    description: 'Robert Thompson exceeded their monthly budget by 12%',
     timestamp: '2024-01-14T11:00:00',
     clientId: 'CLT006',
     clientName: 'Robert Thompson',
@@ -99,9 +98,9 @@ export const recentActivities: Activity[] = [
   },
   {
     id: 'ACT005',
-    type: 'document',
-    title: 'Documents signed',
-    description: 'David Kim signed updated IPS',
+    type: 'meeting',
+    title: 'Budget review completed',
+    description: 'David Kim reviewed spending goals with adviser',
     timestamp: '2024-01-13T10:30:00',
     clientId: 'CLT004',
     clientName: 'David Kim',
@@ -109,8 +108,8 @@ export const recentActivities: Activity[] = [
   {
     id: 'ACT006',
     type: 'transaction',
-    title: 'Withdrawal processed',
-    description: 'Thomas Anderson withdrew $150,000',
+    title: 'Large expense logged',
+    description: 'Thomas Anderson logged a £1,200 home repair expense',
     timestamp: '2024-01-12T10:00:00',
     clientId: 'CLT010',
     clientName: 'Thomas Anderson',
@@ -122,8 +121,8 @@ export const alerts: Alert[] = [
   {
     id: 'ALT001',
     type: 'warning',
-    title: 'Portfolio Drift',
-    message: 'Robert Thompson portfolio drifted 8% from target allocation',
+    title: 'Over Budget',
+    message: 'Robert Thompson has exceeded their monthly budget — groceries up 34%',
     clientId: 'CLT006',
     clientName: 'Robert Thompson',
     timestamp: '2024-01-15T08:00:00',
@@ -131,8 +130,8 @@ export const alerts: Alert[] = [
   {
     id: 'ALT002',
     type: 'danger',
-    title: 'Compliance Review',
-    message: 'Michael Chen requires annual KYC update',
+    title: 'Spending Spike',
+    message: 'Michael Chen — dining and takeaway spend doubled this week',
     clientId: 'CLT002',
     clientName: 'Michael Chen',
     timestamp: '2024-01-14T09:00:00',
@@ -140,23 +139,29 @@ export const alerts: Alert[] = [
   {
     id: 'ALT003',
     type: 'info',
-    title: 'Document Expiring',
-    message: 'Elizabeth Harper IPS expires in 30 days',
+    title: 'Budget Review Due',
+    message: 'Elizabeth Harper is due her quarterly budget review',
     clientId: 'CLT003',
     clientName: 'Elizabeth Harper',
     timestamp: '2024-01-13T12:00:00',
   },
 ]
 
-// Top performing clients
-export const topPerformingClients = mockClients
+export const topClients = mockClients
   .filter(c => c.status === 'active')
-  .sort((a, b) => b.portfolioValue - a.portfolioValue)
+  .sort((a, b) => {
+    const order = { over_budget: 0, at_risk: 1, on_track: 2 }
+    const diff = order[a.budgetHealth] - order[b.budgetHealth]
+    if (diff !== 0) return diff
+    return b.monthlyBudget - a.monthlyBudget
+  })
   .slice(0, 5)
   .map(client => {
-    // Deterministic mock YTD return derived from the client id — avoids
-    // server/client Math.random() hydration mismatch.
     const seed = client.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
-    const ytdReturn = 5 + (seed % 200) / 10 // stable value in range 5–25%
-    return { ...client, ytdReturn }
+    const budgetVariance = client.budgetHealth === 'over_budget'
+      ? -(5 + (seed % 20))
+      : client.budgetHealth === 'at_risk'
+      ? 2 + (seed % 8)
+      : 10 + (seed % 15)
+    return { ...client, budgetVariance }
   })

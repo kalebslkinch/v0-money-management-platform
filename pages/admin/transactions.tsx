@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   Landmark,
   CircleDollarSign,
-  TrendingUp,
   Download,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
@@ -32,27 +31,33 @@ import {
 } from '@/components/ui/select'
 import { useUserRole } from '@/hooks/use-user-role'
 import { PFMSCustomerSpending } from '@/components/admin/pfms-customer-spending'
+import { CustomerTransactionsPanel } from '@/components/admin/customer-transactions-panel'
+import { PrivacyNotice } from '@/components/admin/privacy-notice'
 import { getPFMSSnapshotForCustomer } from '@/lib/data/mock-pfms'
 import { getVisibleTransactions } from '@/lib/utils/role-filters'
+import { mockClients } from '@/lib/data/mock-clients'
+import { mockAdvisors } from '@/lib/data/mock-advisors'
 import { formatCurrency, formatDateTime } from '@/lib/utils/format'
+import { exportData } from '@/lib/utils/export'
 import { cn } from '@/lib/utils'
+import type { TransactionType } from '@/lib/types/admin'
 
-const transactionIcons = {
-  deposit: ArrowDownRight,
+const transactionIcons: Record<TransactionType, React.ComponentType<{ className?: string }>> = {
+  income:     CircleDollarSign,
+  expense:    ArrowUpRight,
+  deposit:    ArrowDownRight,
   withdrawal: ArrowUpRight,
-  buy: Landmark,
-  sell: CircleDollarSign,
-  fee: ArrowLeftRight,
-  dividend: TrendingUp,
+  transfer:   ArrowLeftRight,
+  fee:        Landmark,
 }
 
-const transactionColors = {
-  deposit: 'text-success bg-success/10',
+const transactionColors: Record<TransactionType, string> = {
+  income:     'text-success bg-success/10',
+  expense:    'text-destructive bg-destructive/10',
+  deposit:    'text-success bg-success/10',
   withdrawal: 'text-destructive bg-destructive/10',
-  buy: 'text-primary bg-primary/10',
-  sell: 'text-warning bg-warning/10',
-  fee: 'text-muted-foreground bg-muted',
-  dividend: 'text-success bg-success/10',
+  transfer:   'text-primary bg-primary/10',
+  fee:        'text-muted-foreground bg-muted',
 }
 
 const statusColors = {
@@ -61,20 +66,26 @@ const statusColors = {
   failed: 'bg-destructive/10 text-destructive border-destructive/20',
 }
 
-const transactionLabels = {
-  deposit: 'Income In',
-  withdrawal: 'Bill Payment',
-  buy: 'Card Spend',
-  sell: 'Refund',
-  fee: 'Bank Fee',
-  dividend: 'Cashback',
+const transactionLabels: Record<TransactionType, string> = {
+  income:     'Income',
+  expense:    'Expense',
+  deposit:    'Deposit',
+  withdrawal: 'Withdrawal',
+  transfer:   'Transfer',
+  fee:        'Bank Fee',
 }
+
+const MS_PER_DAY = 86_400_000
 
 export default function TransactionsPage() {
   const { user } = useUserRole()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [advisorFilter, setAdvisorFilter] = useState<string>('all')
+  const [budgetFilter, setBudgetFilter] = useState<string>('all')
+  const [fromDate, setFromDate] = useState<string>('')
+  const [toDate, setToDate] = useState<string>('')
   const visibleTransactions = getVisibleTransactions(user)
 
   const filteredTransactions = visibleTransactions.filter((txn) => {
@@ -84,7 +95,15 @@ export default function TransactionsPage() {
       (txn.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
     const matchesType = typeFilter === 'all' || txn.type === typeFilter
     const matchesStatus = statusFilter === 'all' || txn.status === statusFilter
-    return matchesSearch && matchesType && matchesStatus
+    const client = mockClients.find(c => c.id === txn.clientId)
+    const matchesAdvisor = advisorFilter === 'all' || client?.advisorId === advisorFilter
+    const matchesRisk = budgetFilter === 'all' || client?.budgetHealth === budgetFilter
+    const txnTime = new Date(txn.date).getTime()
+    const fromTime = fromDate ? new Date(fromDate).getTime() : -Infinity
+    // Add one day in ms so the "to" date is inclusive of the entire selected day
+    const toTime = toDate ? new Date(toDate).getTime() + MS_PER_DAY : Infinity
+    const matchesDate = txnTime >= fromTime && txnTime <= toTime
+    return matchesSearch && matchesType && matchesStatus && matchesAdvisor && matchesRisk && matchesDate
   })
 
   const totalDeposits = visibleTransactions
@@ -105,7 +124,9 @@ export default function TransactionsPage() {
       <>
         <AdminHeader title="Spending" />
         <main className="flex-1 overflow-auto p-6">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-7xl space-y-6">
+            <PrivacyNotice />
+            <CustomerTransactionsPanel clientId={user.clientId ?? 'CLT001'} />
             <PFMSCustomerSpending snapshot={snapshot} />
           </div>
         </main>
@@ -130,7 +151,24 @@ export default function TransactionsPage() {
                     : 'Track your recent account activity.'}
               </p>
             </div>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() =>
+                exportData({
+                  filename: `transactions-${new Date().toISOString().slice(0, 10)}`,
+                  rows: filteredTransactions,
+                  columns: [
+                    { key: 'date', label: 'Date', value: row => formatDateTime(row.date) },
+                    { key: 'clientName', label: 'Customer' },
+                    { key: 'type', label: 'Type', value: row => transactionLabels[row.type] },
+                    { key: 'description', label: 'Description', value: row => row.description ?? '' },
+                    { key: 'amount', label: 'Amount' },
+                    { key: 'status', label: 'Status' },
+                  ],
+                })
+              }
+              disabled={filteredTransactions.length === 0}
+            >
               <Download className="mr-2 size-4" />
               Export
             </Button>
@@ -190,12 +228,12 @@ export default function TransactionsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="deposit">Income In</SelectItem>
-                  <SelectItem value="withdrawal">Bill Payment</SelectItem>
-                  <SelectItem value="buy">Card Spend</SelectItem>
-                  <SelectItem value="sell">Refund</SelectItem>
+                  <SelectItem value="income">Income</SelectItem>
+                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="deposit">Deposit</SelectItem>
+                  <SelectItem value="withdrawal">Withdrawal</SelectItem>
+                  <SelectItem value="transfer">Transfer</SelectItem>
                   <SelectItem value="fee">Bank Fee</SelectItem>
-                  <SelectItem value="dividend">Cashback</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -209,6 +247,46 @@ export default function TransactionsPage() {
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
+              {user.role === 'manager' && (
+                <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Adviser" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Advisers</SelectItem>
+                    {mockAdvisors.map(advisor => (
+                      <SelectItem key={advisor.id} value={advisor.id}>
+                        {advisor.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Budget health" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Health</SelectItem>
+                  <SelectItem value="on_track">On Track</SelectItem>
+                  <SelectItem value="at_risk">At Risk</SelectItem>
+                  <SelectItem value="over_budget">Over Budget</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                type="date"
+                value={fromDate}
+                onChange={event => setFromDate(event.target.value)}
+                className="w-[150px]"
+                aria-label="From date"
+              />
+              <Input
+                type="date"
+                value={toDate}
+                onChange={event => setToDate(event.target.value)}
+                className="w-[150px]"
+                aria-label="To date"
+              />
             </div>
           </div>
 
@@ -274,11 +352,11 @@ export default function TransactionsPage() {
                           </TableCell>
                           <TableCell className={cn(
                             'text-right font-semibold tabular-nums',
-                            txn.type === 'deposit' || txn.type === 'dividend' ? 'text-success' :
-                            txn.type === 'withdrawal' || txn.type === 'fee' ? 'text-destructive' : ''
+                            txn.type === 'income' || txn.type === 'deposit' ? 'text-success' :
+                            txn.type === 'expense' || txn.type === 'withdrawal' || txn.type === 'fee' ? 'text-destructive' : ''
                           )}>
-                            {txn.type === 'deposit' || txn.type === 'dividend' ? '+' : ''}
-                            {txn.type === 'withdrawal' || txn.type === 'fee' ? '-' : ''}
+                            {txn.type === 'income' || txn.type === 'deposit' ? '+' : ''}
+                            {txn.type === 'expense' || txn.type === 'withdrawal' || txn.type === 'fee' ? '-' : ''}
                             {formatCurrency(txn.amount)}
                           </TableCell>
                         </TableRow>

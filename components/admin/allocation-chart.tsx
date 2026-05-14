@@ -20,8 +20,8 @@ export function AllocationChart({ data }: AllocationChartProps) {
   return (
     <div className="rounded-2xl bg-card border border-border/50 overflow-hidden">
       <div className="p-6 pb-0">
-        <h3 className="text-lg font-semibold mb-1">Asset Allocation</h3>
-        <p className="text-sm text-muted-foreground">Portfolio distribution</p>
+        <h3 className="text-lg font-semibold mb-1">Spending Breakdown</h3>
+        <p className="text-sm text-muted-foreground">Average category breakdown</p>
       </div>
       
       <div className="p-6">

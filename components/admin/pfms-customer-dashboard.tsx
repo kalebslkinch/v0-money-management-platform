@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import type { PFMSCustomerSnapshot, PFMSCategoryBudget } from '@/lib/types/pfms'
 import { cn } from '@/lib/utils'
+import { PFMSBudgetSummaryCard } from '@/components/admin/pfms-budget-summary-card'
 
 interface PFMScustomerDashboardProps {
   snapshot: PFMSCustomerSnapshot
@@ -38,57 +39,12 @@ function categoryStatus(category: PFMSCategoryBudget): {
 }
 
 export function PFMSCustomerDashboard({ snapshot }: PFMScustomerDashboardProps) {
-  const spendUsed = snapshot.categories.reduce((sum, category) => sum + category.spent, 0)
-  const spendProjected = snapshot.categories.reduce((sum, category) => sum + category.projectedSpend, 0)
-  const plannedCategoryBudget = snapshot.categories.reduce((sum, category) => sum + category.weeklyBudget, 0)
-  const remaining = snapshot.availableToSpend - spendUsed
-  const remainingProjection = snapshot.availableToSpend - spendProjected
   const tesco = snapshot.categories.find(category => category.id === 'tesco-grocery')
   const foodDelivery = snapshot.categories.find(category => category.id === 'food-delivery')
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>{snapshot.weekLabel}</CardDescription>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Remaining This Week</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tabular-nums">GBP {remaining.toFixed(0)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Available {snapshot.availableToSpend.toFixed(0)} from weekly discretionary budget
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Category Spend Pace</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tabular-nums">{Math.round((spendUsed / plannedCategoryBudget) * 100)}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              GBP {spendUsed.toFixed(0)} used of GBP {plannedCategoryBudget.toFixed(0)} planned
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Projected Week-End</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={cn(
-              'text-3xl font-bold tabular-nums',
-              remainingProjection < 0 ? 'text-destructive' : 'text-success',
-            )}>
-              GBP {remainingProjection.toFixed(0)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Based on current spend velocity</p>
-          </CardContent>
-        </Card>
-      </div>
+      <PFMSBudgetSummaryCard snapshot={snapshot} />
 
       <Card>
         <CardHeader>
@@ -198,7 +154,7 @@ export function PFMSCustomerDashboard({ snapshot }: PFMScustomerDashboardProps) 
                 </div>
               </div>
             ))}
-            {remainingProjection < 0 && (
+            {(snapshot.availableToSpend - snapshot.categories.reduce((s, c) => s + c.projectedSpend, 0)) < 0 && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs flex items-start gap-2">
                 <AlertTriangle className="size-4 text-destructive mt-0.5" />
                 <span>

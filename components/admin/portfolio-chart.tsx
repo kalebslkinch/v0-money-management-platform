@@ -20,8 +20,8 @@ export function PortfolioChart({ data }: PortfolioChartProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-chart-2/5" />
         <div className="relative flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-semibold mb-1">Portfolio Performance</h3>
-            <p className="text-sm text-muted-foreground">Total AUM vs market benchmark</p>
+            <h3 className="text-lg font-semibold mb-1">Monthly Spending vs Budget</h3>
+            <p className="text-sm text-muted-foreground">Collective client spending across managed accounts</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold">{formatCurrency(latestValue, true)}</div>

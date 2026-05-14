@@ -12,9 +12,9 @@ interface StatsCardsProps {
 export function StatsCards({ data }: StatsCardsProps) {
   const stats = [
     {
-      title: 'Total AUM',
-      value: formatCurrency(data.totalAUM, true),
-      change: data.aumChange,
+      title: 'Clients On Track',
+      value: data.clientsOnTrack.toString(),
+      change: data.onTrackChange,
       icon: Wallet,
       color: 'from-primary to-chart-2',
       bgGlow: 'bg-primary/20',
@@ -36,9 +36,9 @@ export function StatsCards({ data }: StatsCardsProps) {
       bgGlow: 'bg-chart-2/20',
     },
     {
-      title: 'Avg. Return',
-      value: `${data.avgReturn}%`,
-      change: data.returnChange,
+      title: 'Budget Adherence',
+      value: `${data.avgBudgetAdherence}%`,
+      change: data.adherenceChange,
       icon: Percent,
       color: 'from-chart-4 to-chart-3',
       bgGlow: 'bg-chart-4/20',
