@@ -64,7 +64,7 @@ export const recentActivities: Activity[] = [
     id: 'ACT001',
     type: 'transaction',
     title: 'Large deposit received',
-    description: 'Michael Chen deposited $250,000',
+    description: 'Michael Chen deposited £250,000',
     timestamp: '2024-01-15T09:15:00',
     clientId: 'CLT002',
     clientName: 'Michael Chen',

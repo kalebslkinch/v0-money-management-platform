@@ -224,9 +224,9 @@ function CustomerReports({ clientId }: { clientId: string }) {
                         )
                       }}
                     />
-                    <Bar dataKey="weeklyBudget" name="Budget" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="spent" name="Spent" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="projected" name="Projected" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="weeklyBudget" name="Budget" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="spent" name="Spent" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="projected" name="Projected" fill="var(--warning)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -284,9 +284,9 @@ function CustomerReports({ clientId }: { clientId: string }) {
                       type="monotone"
                       dataKey="total"
                       name="Spend"
-                      stroke="hsl(var(--primary))"
+                      stroke="var(--primary)"
                       strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--primary))' }}
+                      dot={{ fill: 'var(--primary)' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -363,11 +363,11 @@ function AdvisorReports() {
       byType.set(label, (byType.get(label) ?? 0) + h.allocation)
     })
     const COLORS = [
-      'hsl(var(--chart-1))',
-      'hsl(var(--chart-2))',
-      'hsl(var(--chart-3))',
-      'hsl(var(--chart-4))',
-      'hsl(var(--chart-5))',
+      'var(--chart-1)',
+      'var(--chart-2)',
+      'var(--chart-3)',
+      'var(--chart-4)',
+      'var(--chart-5)',
     ]
     return Array.from(byType.entries()).map(([name, value], i) => ({
       name,
@@ -627,8 +627,8 @@ function AdvisorReports() {
                       <AreaChart data={portfolioTimeSeries}>
                         <defs>
                           <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
@@ -644,7 +644,7 @@ function AdvisorReports() {
                         <Area
                           type="monotone"
                           dataKey="value"
-                          stroke="hsl(var(--primary))"
+                          stroke="var(--primary)"
                           strokeWidth={2}
                           fill="url(#portfolioGrad)"
                         />
@@ -831,9 +831,9 @@ function AdvisorReports() {
                           width={50}
                         />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Bar dataKey="weeklyBudget" name="Budget" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="spent" name="Spent" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="projected" name="Projected" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="weeklyBudget" name="Budget" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="spent" name="Spent" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="projected" name="Projected" fill="var(--warning)" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -887,9 +887,9 @@ function AdvisorReports() {
                             type="monotone"
                             dataKey="total"
                             name="Weekly Spend"
-                            stroke="hsl(var(--chart-2))"
+                            stroke="var(--chart-2)"
                             strokeWidth={2}
-                            dot={{ fill: 'hsl(var(--chart-2))' }}
+                            dot={{ fill: 'var(--chart-2)' }}
                           />
                         </LineChart>
                       </ResponsiveContainer>

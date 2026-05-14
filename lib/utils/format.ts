@@ -1,19 +1,19 @@
 /**
- * Format a number as currency (USD)
+ * Format a number as currency (GBP)
  */
 export function formatCurrency(amount: number, compact = false): string {
   if (compact) {
     if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`
+      return `£${(amount / 1000000).toFixed(1)}M`
     }
     if (amount >= 1000) {
-      return `$${(amount / 1000).toFixed(0)}K`
+      return `£${(amount / 1000).toFixed(0)}K`
     }
   }
   
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'GBP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)

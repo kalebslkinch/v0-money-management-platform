@@ -46,6 +46,14 @@ import {
   LineChart as LineChartIcon,
 } from 'lucide-react'
 
+const BAR_RANGE_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+]
+
 // ─── CSV export helper ────────────────────────────────────────────────────────
 
 function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
@@ -180,7 +188,7 @@ export default function AnalyticsPage() {
   // ── Export handlers ───────────────────────────────────────────────────────
 
   const exportCohortCsv = () => {
-    const headers = ['Cohort', 'Clients', 'On Track %', 'Total Budget ($)', 'Projected ($)', 'Avg Income Utilisation %']
+    const headers = ['Cohort', 'Clients', 'On Track %', 'Total Budget (£)', 'Projected (£)', 'Avg Income Utilisation %']
     const rows = [...filteredAdvisorTeams, ...filteredRiskCohorts].map(c => [
       c.label, c.clientCount, c.onTrackPct, c.totalBudget, c.totalProjected, c.avgIncomeUtilisation,
     ])
@@ -188,17 +196,17 @@ export default function AnalyticsPage() {
   }
 
   const exportCashFlowCsv = () => {
-    const headers = ['Month', 'Inflow ($)', 'Outflow ($)']
+    const headers = ['Month', 'Inflow (£)', 'Outflow (£)']
     downloadCsv('analytics-cash-flow.csv', headers, filteredCashFlowData.map(d => [d.month, d.inflow, d.outflow]))
   }
 
   const exportCategoryCsv = () => {
-    const headers = ['Category', 'Total Spent ($)']
+    const headers = ['Category', 'Total Spent (£)']
     downloadCsv('analytics-category-spending.csv', headers, filteredCategoryData.map(d => [d.name, d.spent]))
   }
 
   const exportCategoryPressureCsv = () => {
-    const headers = ['Category', 'Total Budget ($)', 'Total Projected ($)', 'Overspend Ratio (%)', 'Clients Over Cap']
+    const headers = ['Category', 'Total Budget (£)', 'Total Projected (£)', 'Overspend Ratio (%)', 'Clients Over Cap']
     downloadCsv(
       'analytics-category-pressure.csv',
       headers,
@@ -442,7 +450,7 @@ export default function AnalyticsPage() {
                         <YAxis
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={value => `$${Math.round(value / 1000)}k`}
+                          tickFormatter={value => `£${Math.round(value / 1000)}k`}
                           className="text-xs text-muted-foreground"
                           width={50}
                         />
@@ -462,8 +470,8 @@ export default function AnalyticsPage() {
                           }}
                         />
                         <Legend />
-                        <Bar dataKey="inflow" name="Inflow" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="outflow" name="Outflow" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="inflow" name="Inflow" fill="var(--success)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="outflow" name="Outflow" fill="var(--destructive)" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     ) : (
                       <LineChart data={filteredCashFlowData}>
@@ -472,7 +480,7 @@ export default function AnalyticsPage() {
                         <YAxis
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={value => `$${Math.round(value / 1000)}k`}
+                          tickFormatter={value => `£${Math.round(value / 1000)}k`}
                           className="text-xs text-muted-foreground"
                           width={50}
                         />
@@ -492,8 +500,8 @@ export default function AnalyticsPage() {
                           }}
                         />
                         <Legend />
-                        <Line type="monotone" dataKey="inflow" name="Inflow" stroke="hsl(var(--success))" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="outflow" name="Outflow" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="inflow" name="Inflow" stroke="var(--success)" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="outflow" name="Outflow" stroke="var(--destructive)" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
                     )}
                   </ResponsiveContainer>
@@ -521,7 +529,7 @@ export default function AnalyticsPage() {
                           type="number"
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={value => `$${Math.round(value)}`}
+                          tickFormatter={value => `£${Math.round(value)}`}
                           className="text-xs text-muted-foreground"
                           width={50}
                         />
@@ -544,7 +552,11 @@ export default function AnalyticsPage() {
                             )
                           }}
                         />
-                        <Bar dataKey="spent" name="Spent" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="spent" name="Spent" radius={[0, 4, 4, 0]}>
+                          {filteredCategoryData.map((_, index) => (
+                            <Cell key={index} fill={BAR_RANGE_COLORS[index % BAR_RANGE_COLORS.length]} />
+                          ))}
+                        </Bar>
                       </BarChart>
                     ) : (
                       <LineChart data={filteredCategoryData}>
@@ -553,7 +565,7 @@ export default function AnalyticsPage() {
                         <YAxis
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={value => `$${Math.round(value)}`}
+                          tickFormatter={value => `£${Math.round(value)}`}
                           className="text-xs text-muted-foreground"
                           width={50}
                         />
@@ -572,9 +584,9 @@ export default function AnalyticsPage() {
                           type="monotone"
                           dataKey="spent"
                           name="Spent"
-                          stroke="hsl(var(--primary))"
+                          stroke="var(--primary)"
                           strokeWidth={2}
-                          dot={{ fill: 'hsl(var(--primary))' }}
+                          dot={{ fill: 'var(--primary)' }}
                         />
                       </LineChart>
                     )}
@@ -720,7 +732,7 @@ export default function AnalyticsPage() {
                           {filteredAdvisorTeams.map((entry, index) => (
                             <Cell
                               key={index}
-                              fill={entry.onTrackPct >= 60 ? 'hsl(var(--success))' : 'hsl(var(--warning))'}
+                              fill={entry.onTrackPct >= 60 ? 'var(--success)' : 'var(--warning)'}
                             />
                           ))}
                         </Bar>
@@ -770,10 +782,9 @@ export default function AnalyticsPage() {
                           }}
                         />
                         <Bar dataKey="onTrackPct" name="On Track %" radius={[4, 4, 0, 0]}>
-                          {filteredRiskCohorts.map((entry, index) => {
-                            const colors = ['hsl(var(--chart-2))', 'hsl(var(--chart-4))', 'hsl(var(--chart-1))']
-                            return <Cell key={index} fill={colors[index % colors.length]} />
-                          })}
+                          {filteredRiskCohorts.map((_, index) => (
+                            <Cell key={index} fill={BAR_RANGE_COLORS[index % BAR_RANGE_COLORS.length]} />
+                          ))}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -832,7 +843,7 @@ export default function AnalyticsPage() {
                           {teamInsights.categoryPressure.map((entry, index) => (
                             <Cell
                               key={index}
-                              fill={entry.overspendRatio > 0 ? 'hsl(var(--destructive))' : 'hsl(var(--success))'}
+                              fill={entry.overspendRatio > 0 ? 'var(--destructive)' : 'var(--success)'}
                             />
                           ))}
                         </Bar>
@@ -877,9 +888,9 @@ export default function AnalyticsPage() {
                           }}
                         />
                         <Legend />
-                        <Line type="monotone" dataKey="adv001Pct" name="J. Wilson Team" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="adv002Pct" name="E. Rodriguez Team" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="overallPct" name="Overall" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="adv001Pct" name="J. Wilson Team" stroke="var(--chart-1)" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="adv002Pct" name="E. Rodriguez Team" stroke="var(--chart-2)" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="overallPct" name="Overall" stroke="var(--chart-3)" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>

@@ -5,6 +5,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -52,6 +53,14 @@ import { useConsultationRequests } from '@/hooks/use-store'
 import { exportData } from '@/lib/utils/export'
 import type { Case } from '@/lib/types/admin'
 import type { AdvisorPerformanceSnapshot, TeamInsightPoint } from '@/lib/types/store'
+
+const BAR_RANGE_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+]
 
 /**
  * Manager-only performance dashboard (SRD-M04) and anonymised team insights
@@ -435,7 +444,7 @@ function PerformancePageInner() {
                         type="monotone"
                         dataKey="avgSatisfaction"
                         name="Satisfaction"
-                        stroke="hsl(var(--primary))"
+                        stroke="var(--primary)"
                         strokeWidth={2}
                         dot={false}
                       />
@@ -443,7 +452,7 @@ function PerformancePageInner() {
                         type="monotone"
                         dataKey="avgCompletion"
                         name="Completion"
-                        stroke="hsl(var(--chart-2))"
+                        stroke="var(--chart-2)"
                         strokeWidth={2}
                         dot={false}
                       />
@@ -466,7 +475,11 @@ function PerformancePageInner() {
                       <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs" />
                       <YAxis tickLine={false} axisLine={false} className="text-xs" width={40} />
                       <Tooltip />
-                      <Bar dataKey="totalCases" name="Cases" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="totalCases" name="Cases" radius={[4, 4, 0, 0]}>
+                        {teamInsights.map((_, index) => (
+                          <Cell key={index} fill={BAR_RANGE_COLORS[index % BAR_RANGE_COLORS.length]} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

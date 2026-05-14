@@ -77,7 +77,7 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.28, weekly: 1.2, monthly: 2.5, yearly: 10.8 },
   },
-  // CLT005 – Amanda Foster (low risk, $890k, pending onboarding)
+  // CLT005 – Amanda Foster (low risk, £890k, pending onboarding)
   CLT005: {
     clientId: 'CLT005',
     totalValue: 890000,
@@ -90,7 +90,7 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.08, weekly: 0.4, monthly: 0.9, yearly: 4.8 },
   },
-  // CLT007 – Jennifer Walsh (moderate risk, $1.65m; equity drifted to 58% per CASE004)
+  // CLT007 – Jennifer Walsh (moderate risk, £1.65m; equity drifted to 58% per CASE004)
   CLT007: {
     clientId: 'CLT007',
     totalValue: 1650000,
@@ -103,7 +103,7 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.52, weekly: 2.1, monthly: 4.5, yearly: 18.2 },
   },
-  // CLT008 – Christopher Lee (low risk, $980k, inactive)
+  // CLT008 – Christopher Lee (low risk, £980k, inactive)
   CLT008: {
     clientId: 'CLT008',
     totalValue: 980000,
@@ -115,7 +115,7 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.10, weekly: 0.5, monthly: 1.1, yearly: 5.4 },
   },
-  // CLT009 – Maria Garcia (moderate risk, $3.1m)
+  // CLT009 – Maria Garcia (moderate risk, £3.1m)
   CLT009: {
     clientId: 'CLT009',
     totalValue: 3100000,
@@ -129,7 +129,7 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.38, weekly: 1.6, monthly: 3.1, yearly: 13.2 },
   },
-  // CLT011 – Patricia Moore (low risk, $560k)
+  // CLT011 – Patricia Moore (low risk, £560k)
   CLT011: {
     clientId: 'CLT011',
     totalValue: 560000,
@@ -141,7 +141,7 @@ export const mockPortfolios: Record<string, Portfolio> = {
     ],
     performance: { daily: 0.06, weekly: 0.3, monthly: 0.7, yearly: 3.8 },
   },
-  // CLT012 – Daniel Brown (moderate risk, $2.1m)
+  // CLT012 – Daniel Brown (moderate risk, £2.1m)
   CLT012: {
     clientId: 'CLT012',
     totalValue: 2100000,

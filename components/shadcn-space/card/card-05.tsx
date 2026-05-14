@@ -26,13 +26,13 @@ const mainDashboardData: MainDashboardData = {
     metrics: [
         {
             label: "Earnings",
-            value: "$27,850",
+            value: "£27,850",
             percentage: "+18%",
             isPositive: true,
         },
         {
             label: "Expense",
-            value: "$18,453",
+            value: "£18,453",
             percentage: "-5%",
             isPositive: false,
         },

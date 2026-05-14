@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import {
@@ -10,7 +11,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Zap,
   FileText,
   MessagesSquare,
   ClipboardList,
@@ -145,11 +145,17 @@ export function AdminSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
               <Link href="/admin" className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-2 shadow-lg glow-primary">
-                  <Zap className="size-5 text-primary-foreground" />
+                <div className="flex size-12 items-center justify-center rounded-xl bg-card shadow-sm border border-border/60 overflow-hidden">
+                  <Image
+                    src="/alpha-finance-logo.svg"
+                    alt="Alpha Finance"
+                    width={50}
+                    height={50}
+                    className="size-[50px] object-contain"
+                  />
                 </div>
                 <div className="flex flex-col leading-none gap-0.5">
-                  <span className="text-lg font-bold tracking-tight">Alpha Finance</span>
+                  <span className="text-xl font-bold tracking-tight">Alpha Finance</span>
                   <span className="text-[9px] uppercase tracking-wide text-muted-foreground leading-[1.3]">
                     Personal Finance<br />Management System
                   </span>
