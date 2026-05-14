@@ -11,6 +11,8 @@ export interface Client {
   lastActivity: string
   advisor: string
   advisorId: string
+  /** Optional: secondary advisers authorised to collaborate on this client (SRD-A13). */
+  collaboratorAdvisorIds?: string[]
   avatar?: string
 }
 

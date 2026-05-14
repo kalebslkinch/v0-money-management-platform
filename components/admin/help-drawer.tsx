@@ -58,15 +58,6 @@ export function HelpDrawer() {
             Find guides, contact support, and review platform policies.
           </SheetDescription>
         </SheetHeader>
-        <SheetHeader className="p-0">
-          <SheetTitle className="flex items-center gap-2">
-            <HelpCircle className="size-4 text-primary" />
-            Help & Support
-          </SheetTitle>
-          <SheetDescription>
-            Find guides, contact support, and review platform policies.
-          </SheetDescription>
-        </SheetHeader>
 
         <section className="space-y-3">
           <h3 className="text-sm font-semibold tracking-tight">Quick guides</h3>
@@ -128,7 +119,7 @@ export function HelpDrawer() {
 
         {isCustomer && (
           <ComplaintForm
-            clientId={user.clientId ?? user.id}
+            clientId={user.clientId ?? user.userId}
             clientName={user.name}
             onSubmitted={() => setOpen(false)}
           />

@@ -20,6 +20,7 @@ import {
 } from 'recharts'
 import { ChevronDown, Download, FileText, ImageDown, Users } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
+import { ReportTemplatesPanel } from '@/components/admin/report-templates-panel'
 import { PrivacyNotice } from '@/components/admin/privacy-notice'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -164,6 +165,8 @@ function CustomerReports({ clientId }: { clientId: string }) {
           </div>
 
           <PrivacyNotice />
+
+          <ReportTemplatesPanel scope="customer" />
 
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
@@ -555,6 +558,8 @@ function AdvisorReports() {
               </SelectContent>
             </Select>
           </div>
+
+          <ReportTemplatesPanel scope={user.role === 'manager' ? 'manager' : 'fa'} />
 
           {/* Portfolio section -- always visible to advisers */}
           {portfolio && selectedClient && (

@@ -52,6 +52,8 @@ import { useConsultationRequests } from '@/hooks/use-store'
 import { exportData } from '@/lib/utils/export'
 import type { Case } from '@/lib/types/admin'
 import type { AdvisorPerformanceSnapshot, TeamInsightPoint } from '@/lib/types/store'
+import { SmartRecommendationsPanel } from '@/components/admin/smart-recommendations-panel'
+import { QuarterlyTrendReport } from '@/components/admin/quarterly-trend-report'
 
 /**
  * Manager-only performance dashboard (SRD-M04) and anonymised team insights
@@ -473,6 +475,10 @@ function PerformancePageInner() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Smart recommendations (SRD-M16) and auto-quarterly trend (SRD-M19) */}
+          <SmartRecommendationsPanel snapshots={advisorMetrics} />
+          <QuarterlyTrendReport insights={teamInsights} />
 
           {/* Filtered client list — supports SRD-M06 visibility */}
           <Card>

@@ -158,69 +158,8 @@ function TeamMemberSheetBody({ member, onOpenChange, onEdit, onDelete }: TeamMem
       <Separator />
 
       {/* Performance Notes (SRD-M12) */}
-      <div className="py-4 space-y-3">
-        <h3 className="text-sm font-semibold flex items-center gap-1.5">
-          <MessageSquarePlus className="size-4 text-primary" />
-          Performance Notes
-        </h3>
-
-        <div className="space-y-2">
-          <Select value={category} onValueChange={(v) => setCategory(v as PerformanceNoteCategory)}>
-            <SelectTrigger className="text-sm h-8">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.keys(categoryLabels) as PerformanceNoteCategory[]).map(key => (
-                <SelectItem key={key} value={key}>{categoryLabels[key]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Textarea
-            placeholder="Add an internal feedback or performance note…"
-            value={noteInput}
-            onChange={e => setNoteInput(e.target.value)}
-            rows={3}
-            className="resize-none text-sm"
-          />
-          <Button
-            size="sm"
-            className="w-full gap-2"
-            disabled={!noteInput.trim()}
-            onClick={handleAddNote}
-          >
-            <MessageSquarePlus className="size-4" />
-            Add Note
-          </Button>
-        </div>
-
-        {notes.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">No notes recorded yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {notes.map(note => (
-              <div key={note.id} className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline" className="text-xs px-1.5 py-0">
-                    {categoryLabels[note.category]}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-6 text-muted-foreground hover:text-destructive shrink-0"
-                    onClick={() => remove(note.id)}
-                    aria-label="Delete note"
-                  >
-                    <Trash className="size-3.5" />
-                  </Button>
-                </div>
-                <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                <p className="text-xs text-muted-foreground">
-                  {note.authorName} · {formatDate(note.createdAt)}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="py-4">
+        <PerformanceNotesPanel memberId={member.id} memberName={member.name} />
       </div>
 
       <Separator />

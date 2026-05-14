@@ -9,6 +9,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { BUILT_IN_REPORT_TEMPLATES } from '@/lib/data/report-templates'
 
 const SEED_FLAG_KEY = 'pmfs_seed_v1_done'
 const SEED_TASKS_FLAG_KEY = 'pmfs_seed_v2_tasks_done'
@@ -233,6 +234,24 @@ export function StoreBootstrap() {
     }
 
     window.localStorage.setItem(SEED_TASKS_FLAG_KEY, 'true')
+    window.dispatchEvent(new CustomEvent('pmfs:store-change'))
+  }, [])
+
+  // ── Report templates seed (v3) – seed built-in standardised report templates ──
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const FLAG = 'pmfs_seed_v3_report_templates_done'
+    if (window.localStorage.getItem(FLAG) === 'true') return
+
+    const existing = readSafe('pmfs_report_templates')
+    // Merge built-ins, deduplicating by id so existing user templates are preserved.
+    const existingIds = new Set(existing.map((item: unknown) => (item as { id?: string }).id))
+    const merged = [
+      ...BUILT_IN_REPORT_TEMPLATES.filter(template => !existingIds.has(template.id)),
+      ...(existing as unknown[]),
+    ]
+    window.localStorage.setItem('pmfs_report_templates', JSON.stringify(merged))
+    window.localStorage.setItem(FLAG, 'true')
     window.dispatchEvent(new CustomEvent('pmfs:store-change'))
   }, [])
 

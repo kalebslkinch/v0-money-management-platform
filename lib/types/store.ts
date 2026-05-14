@@ -12,6 +12,15 @@ export interface UserTransaction {
   categoryLabel: string
   tags: string[]
   notes?: string
+  /** Optional receipt image (SRD-U15). */
+  receipt?: ReceiptAttachment
+  /**
+   * If present, the transaction has been split across multiple categories
+   * (SRD-U10). The sum of all split amounts MUST equal `amount`.
+   */
+  splits?: TransactionSplit[]
+  /** True when transaction was created from receipt OCR (SRD-U16/A12). */
+  fromReceiptScan?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -189,4 +198,112 @@ export interface TaskRecord {
   createdByName: string
   createdAt: string
   updatedAt: string
+}
+
+// ─── Receipt attachments (SRD-U15) ────────────────────────────────────────────
+export interface ReceiptAttachment {
+  /** Stored as a data: URL (prototype). In production, an object-storage URL. */
+  dataUrl: string
+  filename: string
+  mimeType: string
+  /** Bytes (post base64-decode). */
+  size: number
+  uploadedAt: string
+}
+
+// ─── Transaction split allocations (SRD-U10) ──────────────────────────────────
+export interface TransactionSplit {
+  id: string
+  categoryId: string
+  categoryLabel: string
+  amount: number
+  note?: string
+}
+
+// ─── Adviser internal client notes (SRD-A07) ──────────────────────────────────
+export interface ClientNote {
+  id: string
+  clientId: string
+  authorId: string
+  authorName: string
+  content: string
+  tags: string[]
+  pinned: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── Saved report templates (SRD-G09, SRD-U14) ────────────────────────────────
+export type ReportTemplateScope = 'customer' | 'fa' | 'manager' | 'shared'
+
+export interface ReportTemplate {
+  id: string
+  name: string
+  description?: string
+  /** Audience this template applies to. */
+  scope: ReportTemplateScope
+  /** Optional owner — null for built-in/standardised templates. */
+  ownerId?: string
+  ownerName?: string
+  /** Free-form configuration: dateRange, chartType, filters, columns… */
+  config: Record<string, unknown>
+  /** Built-in templates ship with the app and cannot be deleted. */
+  builtIn: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── Direct messaging (SRD-M18, SRD-A09) ──────────────────────────────────────
+export type MessageThreadKind = 'manager_advisor' | 'advisor_advisor'
+
+export interface MessageThread {
+  id: string
+  kind: MessageThreadKind
+  subject: string
+  /** User ids participating. Order is not significant. */
+  participantIds: string[]
+  /** Display names mirrored from participants for prototype convenience. */
+  participantNames: string[]
+  /** Optional client this thread is about (e.g. collaboration). */
+  clientId?: string
+  clientName?: string
+  lastMessageAt: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DirectMessage {
+  id: string
+  threadId: string
+  authorId: string
+  authorName: string
+  authorRole: 'manager' | 'fa'
+  body: string
+  createdAt: string
+  readBy: string[]
+}
+
+// ─── Onboarding completion (SRD-G11) ──────────────────────────────────────────
+export interface OnboardingState {
+  userId: string
+  role: 'manager' | 'fa' | 'customer'
+  completed: boolean
+  dismissedAt?: string
+  completedAt?: string
+}
+
+// ─── Two-factor authentication (SRD-G01) ──────────────────────────────────────
+export interface TwoFactorSettings {
+  userId: string
+  enabled: boolean
+  /** Mock secret label – never used for real auth. */
+  method: 'authenticator' | 'sms' | 'email'
+  enrolledAt?: string
+}
+
+// ─── Auto-logout settings (SRD-G10) ───────────────────────────────────────────
+export interface SessionSettings {
+  userId: string
+  /** Idle minutes after which the user is automatically signed out. */
+  idleTimeoutMinutes: number
 }

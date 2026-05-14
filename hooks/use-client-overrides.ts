@@ -6,7 +6,10 @@ import type { Client } from '@/lib/types/admin'
 const STORAGE_KEY = 'pmfs_client_overrides'
 const CHANGE_EVENT = 'pmfs:store-change'
 
-export type ClientOverride = Pick<Client, 'name' | 'email' | 'phone' | 'riskLevel' | 'status'>
+export type ClientOverride = Pick<
+  Client,
+  'name' | 'email' | 'phone' | 'riskLevel' | 'status' | 'collaboratorAdvisorIds'
+>
 
 type Overrides = Record<string, Partial<ClientOverride>>
 

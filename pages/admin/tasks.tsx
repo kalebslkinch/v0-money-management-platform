@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Plus, Pencil, Trash2, Search, Eye } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
+import { DuplicateTasksBanner } from '@/components/admin/duplicate-tasks-banner'
 import { ConfirmDeleteDialog } from '@/components/admin/confirm-delete-dialog'
 import { CreateTaskDialog } from '@/components/admin/create-task-dialog'
 import { TaskSheet } from '@/components/admin/task-sheet'
@@ -110,6 +111,9 @@ function TasksPageInner() {
       <AdminHeader title="Tasks" />
 
       <main className="flex-1 p-6 space-y-6">
+        {/* Duplicate / overdue task banner (SRD-M14) */}
+        <DuplicateTasksBanner tasks={tasks} />
+
         {/* Summary stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -20,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useClientOverrides, type ClientOverride } from '@/hooks/use-client-overrides'
+import { getActiveAdvisors } from '@/lib/data/mock-advisors'
 import type { Client } from '@/lib/types/admin'
 
 interface EditClientDialogProps {
@@ -30,8 +33,9 @@ interface EditClientDialogProps {
 
 /**
  * Edit dialog used by SRD-A04 to let advisers (and managers) update key
- * client details. Persists overrides locally; safe to wire to a real API
- * later.
+ * client details. Also manages the secondary "collaborator" advisers
+ * authorised to view this client (SRD-A13). Persists overrides locally;
+ * safe to wire to a real API later.
  */
 export function EditClientDialog({ client, open, onOpenChange }: EditClientDialogProps) {
   const { update } = useClientOverrides()
@@ -41,6 +45,7 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
     phone: client.phone,
     riskLevel: client.riskLevel,
     status: client.status,
+    collaboratorAdvisorIds: client.collaboratorAdvisorIds ?? [],
   })
 
   useEffect(() => {
@@ -51,6 +56,7 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
         phone: client.phone,
         riskLevel: client.riskLevel,
         status: client.status,
+        collaboratorAdvisorIds: client.collaboratorAdvisorIds ?? [],
       })
     }
   }, [open, client])
@@ -64,8 +70,23 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
       phone: form.phone.trim(),
       riskLevel: form.riskLevel,
       status: form.status,
+      collaboratorAdvisorIds: form.collaboratorAdvisorIds,
     })
     onOpenChange(false)
+  }
+
+  const collaboratorOptions = getActiveAdvisors().filter(
+    advisor => advisor.id !== client.advisorId,
+  )
+
+  function toggleCollaborator(advisorId: string, checked: boolean) {
+    setForm(state => {
+      const current = state.collaboratorAdvisorIds ?? []
+      const next = checked
+        ? [...current, advisorId]
+        : current.filter(id => id !== advisorId)
+      return { ...state, collaboratorAdvisorIds: next }
+    })
   }
 
   return (
@@ -144,6 +165,42 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">
+              Collaborating advisers (SRD-A13)
+            </Label>
+            <div className="rounded-lg border p-2 max-h-32 overflow-y-auto space-y-1">
+              {collaboratorOptions.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  No other active advisers available.
+                </p>
+              ) : (
+                collaboratorOptions.map(advisor => {
+                  const checked = form.collaboratorAdvisorIds?.includes(advisor.id) ?? false
+                  return (
+                    <label
+                      key={advisor.id}
+                      className="flex items-center gap-2 text-sm cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={value =>
+                          toggleCollaborator(advisor.id, value === true)
+                        }
+                      />
+                      <span>{advisor.name}</span>
+                      <Badge variant="outline" className="text-[10px] capitalize">
+                        {advisor.role.replace('_', ' ')}
+                      </Badge>
+                    </label>
+                  )
+                })
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Authorised collaborators can view and contribute to this client&apos;s file.
+            </p>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

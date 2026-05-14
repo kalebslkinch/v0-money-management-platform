@@ -32,6 +32,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ClientNotesPanel } from '@/components/admin/client-notes-panel'
+import { mockAdvisors } from '@/lib/data/mock-advisors'
 import { mockClients, getClientById } from '@/lib/data/mock-clients'
 import { getTransactionsByClientId } from '@/lib/data/mock-transactions'
 import { getPortfolioByClientId } from '@/lib/data/mock-portfolios'
@@ -390,6 +392,31 @@ export default function ClientDetailPage({ client: serverClient, transactions, p
             viewerRole={user.role}
             snapshot={pfmsSnapshot}
           />
+
+          {/* Internal adviser/manager notes (SRD-A07) */}
+          <ClientNotesPanel clientId={client.id} clientName={client.name} />
+
+          {/* Collaborator advisers (SRD-A13) */}
+          {(client.collaboratorAdvisorIds?.length ?? 0) > 0 && (
+            <Card className="rounded-2xl border-border/50">
+              <CardHeader>
+                <CardTitle className="text-base">Collaborating advisers</CardTitle>
+                <CardDescription>
+                  Authorised secondary advisers can view and contribute to this client's file.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {(client.collaboratorAdvisorIds ?? []).map(advisorId => {
+                  const advisor = mockAdvisors.find(a => a.id === advisorId)
+                  return (
+                    <Badge key={advisorId} variant="outline" className="text-xs">
+                      {advisor?.name ?? advisorId}
+                    </Badge>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       <EditClientDialog client={client} open={editOpen} onOpenChange={setEditOpen} />

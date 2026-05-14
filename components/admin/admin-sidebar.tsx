@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   UserCog,
   CheckSquare,
+  HeartPulse,
+  BookOpen,
 } from 'lucide-react'
 
 import {
@@ -67,7 +69,10 @@ const NAV_GROUPS: NavGroup[] = [
       { title: 'Requests',      url: '/admin/requests',      icon: MessagesSquare },
       { title: 'Consultations', url: '/admin/consultations', icon: ClipboardList },
       { title: 'Tasks',         url: '/admin/tasks',         icon: CheckSquare },
+      { title: 'Messages',      url: '/admin/messages',      icon: MessagesSquare },
       { title: 'Team',          url: '/admin/staff',         icon: UserCog },
+      { title: 'Team Health',   url: '/admin/team-health',   icon: HeartPulse },
+      { title: 'Learning Hub',  url: '/admin/learning',      icon: BookOpen },
     ],
   },
   {
@@ -105,6 +110,9 @@ function isItemVisible(url: string, role: UserRole): boolean {
   if (url === '/admin/consultations') return role === 'manager' || role === 'fa'
   if (url === '/admin/staff')         return role === 'manager'
   if (url === '/admin/tasks')         return role === 'manager'
+  if (url === '/admin/team-health')   return role === 'manager'
+  if (url === '/admin/messages')      return role === 'manager' || role === 'fa'
+  if (url === '/admin/learning')      return role === 'manager' || role === 'fa'
   return true
 }
 

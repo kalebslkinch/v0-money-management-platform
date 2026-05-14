@@ -33,6 +33,11 @@ import { exportData } from '@/lib/utils/export'
 import { formatDate } from '@/lib/utils/format'
 import { getVisibleClients } from '@/lib/utils/role-filters'
 import { RouteGuard } from '@/components/auth/route-guard'
+import { RecentConsultationsWidget } from '@/components/admin/recent-consultations-widget'
+import {
+  ADVISORY_CASE_TEMPLATES,
+  getAdvisoryCaseTemplateById,
+} from '@/lib/data/advisory-case-templates'
 import type { ConsultationRecord } from '@/lib/types/store'
 
 /**
@@ -163,6 +168,8 @@ function ConsultationsPageInner() {
             </div>
           </div>
 
+          <RecentConsultationsWidget limit={5} />
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Filters</CardTitle>
@@ -267,6 +274,33 @@ function ConsultationsPageInner() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!editing && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  Start from a template (SRD-A10)
+                </Label>
+                <Select
+                  value=""
+                  onValueChange={value => {
+                    const template = getAdvisoryCaseTemplateById(value)
+                    if (!template) return
+                    setTopic(template.topic)
+                    setSummary(template.summaryOutline)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a pre-designed template (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ADVISORY_CASE_TEMPLATES.map(template => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="cons-topic">Topic</Label>
               <Input

@@ -6,6 +6,8 @@ import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { StoreBootstrap } from '@/components/admin/store-bootstrap'
 import { ReminderScheduler } from '@/components/admin/reminder-scheduler'
 import { BackgroundEventEngineProvider } from '@/components/admin/background-event-engine'
+import { SpendingAlertsRunner } from '@/components/admin/spending-alerts-runner'
+import { OnboardingTour } from '@/components/admin/onboarding-tour'
 import {
   createDefaultUser,
   PMFS_USER_STORAGE_KEY,
@@ -28,6 +30,8 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
       <StoreBootstrap />
       <ReminderScheduler />
       <BackgroundEventEngineProvider />
+      <SpendingAlertsRunner />
+      <OnboardingTour />
     </main>
   );
 }
