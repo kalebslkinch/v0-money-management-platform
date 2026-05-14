@@ -228,6 +228,7 @@ export function AdminSidebar() {
               <SidebarMenuButton 
                 tooltip="Sign Out" 
                 className="h-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={() => window.parent.postMessage({ type: 'logout' }, 'http://localhost:3000')}
               >
                 <LogOut className="size-4" />
                 <span className="text-sm">Sign Out</span>
