@@ -86,7 +86,7 @@ export function getClientResults(
       clients = clients.filter(c => c.advisorId === filters.adviser)
     }
     if (filters.risk !== 'all') {
-      clients = clients.filter(c => c.riskLevel === filters.risk)
+      clients = clients.filter(c => c.budgetHealth === filters.risk)
     }
   }
 
@@ -96,9 +96,9 @@ export function getClientResults(
     title: c.name,
     subtitle: [c.advisor, c.email].filter(Boolean).join(' · '),
     href: `/admin/clients/${c.id}`,
-    badge: c.riskLevel,
+    badge: c.budgetHealth,
     badgeStatus: 'secondary',
-    searchValue: `client ${c.name} ${c.email} ${c.advisor ?? ''} ${c.riskLevel} ${c.status}`,
+    searchValue: `client ${c.name} ${c.email} ${c.advisor ?? ''} ${c.budgetHealth} ${c.status}`,
   }))
 }
 

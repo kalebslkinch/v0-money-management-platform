@@ -4,8 +4,8 @@ export interface Client {
   name: string
   email: string
   phone: string
-  portfolioValue: number
-  riskLevel: 'low' | 'moderate' | 'high'
+  monthlyBudget: number
+  budgetHealth: 'on_track' | 'at_risk' | 'over_budget'
   status: 'active' | 'inactive' | 'pending'
   joinedDate: string
   lastActivity: string
@@ -33,14 +33,14 @@ export interface Advisor {
   status: AdvisorStatus
   joinDate: string
   clientIds: string[]
-  totalAUM: number
+  managedBudgetTotal: number
   performance: AdvisorPerformance
   activeCaseCount: number
   avatar?: string
 }
 
 // Case Types
-export type CaseType = 'onboarding' | 'annual_review' | 'compliance' | 'complaint' | 'rebalance' | 'kyc_update' | 'general'
+export type CaseType = 'onboarding' | 'annual_review' | 'compliance' | 'complaint' | 'budget_review' | 'kyc_update' | 'general'
 export type CaseStatus = 'open' | 'in_progress' | 'pending_review' | 'resolved' | 'escalated'
 export type CasePriority = 'low' | 'medium' | 'high' | 'critical'
 export type CaseNoteType = 'comment' | 'status_change' | 'escalation'
@@ -73,7 +73,7 @@ export interface Case {
 }
 
 // Transaction Types
-export type TransactionType = 'deposit' | 'withdrawal' | 'buy' | 'sell' | 'fee' | 'dividend'
+export type TransactionType = 'income' | 'expense' | 'deposit' | 'withdrawal' | 'transfer' | 'fee'
 export type TransactionStatus = 'completed' | 'pending' | 'failed'
 
 export interface Transaction {
@@ -126,25 +126,25 @@ export interface RevenueData {
 export interface ClientGrowthData {
   month: string
   clients: number
-  aum: number
+  onTrack: number
 }
 
-export interface RiskDistribution {
-  level: 'low' | 'moderate' | 'high'
+export interface BudgetHealthDistribution {
+  level: 'on_track' | 'at_risk' | 'over_budget'
   count: number
   percentage: number
 }
 
 // Dashboard KPI Types
 export interface KPIData {
-  totalAUM: number
-  aumChange: number
+  clientsOnTrack: number
+  onTrackChange: number
   activeClients: number
   clientsChange: number
   monthlyRevenue: number
   revenueChange: number
-  avgReturn: number
-  returnChange: number
+  avgBudgetAdherence: number
+  adherenceChange: number
 }
 
 // Activity Types

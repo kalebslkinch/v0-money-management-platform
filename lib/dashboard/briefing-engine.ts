@@ -1,14 +1,3 @@
-/**
- * Daily Briefing Engine
- *
- * Pure function that derives 3–5 prioritised BriefingItems from the platform's
- * data sources. Items are ranked: critical > high > medium > info.
- *
- * This deliberately mirrors the auto-promotion logic in use-dashboard-layout
- * (where danger alerts float the alerts-panel widget) but extends it to a
- * human-readable, role-aware morning briefing.
- */
-
 import type { BriefingItem, BriefingPriority } from '@/lib/types/dashboard'
 import { alerts, kpiData, recentActivities } from '@/lib/data/mock-analytics'
 import { mockCases } from '@/lib/data/mock-cases'
@@ -29,12 +18,6 @@ function formatDate(isoString: string): string {
     day: 'numeric',
     month: 'short',
   })
-}
-
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}m`
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}k`
-  return `$${value}`
 }
 
 // ─── Item Builders ─────────────────────────────────────────────────────────────
@@ -80,16 +63,16 @@ function buildCaseItems(): BriefingItem[] {
 
 /** Build a KPI summary item — always informational, always last */
 function buildKPISummaryItem(): BriefingItem {
-  const aumFormatted = formatCurrency(kpiData.totalAUM)
-  const changeSign = kpiData.aumChange >= 0 ? '+' : ''
+  const onTrackCount = kpiData.clientsOnTrack
+  const changeSign = kpiData.onTrackChange >= 0 ? '+' : ''
 
   return {
     id: 'kpi-summary',
     priority: 'info',
     icon: 'TrendingUp',
-    title: 'Portfolio snapshot',
-    description: `Total AUM is ${aumFormatted} with ${kpiData.activeClients} active clients. Average return is ${kpiData.avgReturn}% YTD.`,
-    badge: `${changeSign}${kpiData.aumChange}% this month`,
+    title: 'Budget snapshot',
+    description: `${onTrackCount} of ${kpiData.activeClients} active clients are on track. Average budget adherence is ${kpiData.avgBudgetAdherence}%.`,
+    badge: `${changeSign}${kpiData.onTrackChange}% this month`,
     linkedWidgetId: 'stats-cards' as const,
     actionLabel: 'Open overview',
   }

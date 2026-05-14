@@ -10,7 +10,7 @@ import { useUserRole } from '@/hooks/use-user-role'
 import { useDataSharingConsent } from '@/hooks/use-store'
 import { mockAdvisors } from '@/lib/data/mock-advisors'
 import { mockClients } from '@/lib/data/mock-clients'
-import { kpiData, riskDistributionData } from '@/lib/data/mock-analytics'
+import { kpiData, budgetHealthData } from '@/lib/data/mock-analytics'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
 
@@ -160,9 +160,9 @@ export default function PrivacyPage() {
                   positive
                 />
                 <TrendTile
-                  label="Assets under management"
-                  value={`£${(kpiData.totalAUM / 1_000_000).toFixed(1)}M`}
-                  sub={`+${kpiData.aumChange}% YTD`}
+                  label="Clients on track"
+                  value={String(kpiData.clientsOnTrack)}
+                  sub={`+${kpiData.onTrackChange}% this month`}
                   positive
                 />
                 <TrendTile
@@ -181,10 +181,10 @@ export default function PrivacyPage() {
               {/* Risk profile stacked bar */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Client risk profile distribution
+                  Client budget health distribution
                 </p>
                 <div className="flex h-3 w-full overflow-hidden rounded-full">
-                  {riskDistributionData.map((r, i) => (
+                  {budgetHealthData.map((r, i) => (
                     <div
                       key={r.level}
                       className={cn(
@@ -197,7 +197,7 @@ export default function PrivacyPage() {
                   ))}
                 </div>
                 <div className="flex gap-4 text-xs text-muted-foreground">
-                  {riskDistributionData.map((r, i) => (
+                  {budgetHealthData.map((r, i) => (
                     <span key={r.level} className="flex items-center gap-1.5">
                       <span
                         className={cn(

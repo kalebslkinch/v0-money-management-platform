@@ -10,11 +10,11 @@ import { TopClients } from '@/components/admin/top-clients'
 import { StaffTable } from '@/components/admin/staff-table'
 import {
   kpiData,
-  portfolioPerformanceData,
-  assetAllocationData,
+  budgetAdherenceData,
+  spendingBreakdownData,
   recentActivities,
   alerts,
-  topPerformingClients,
+  topClients,
 } from '@/lib/data/mock-analytics'
 import { getRecentTransactions } from '@/lib/data/mock-transactions'
 import { mockAdvisors } from '@/lib/data/mock-advisors'
@@ -25,7 +25,7 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   'stats-cards': {
     id: 'stats-cards',
     label: 'KPI Overview',
-    description: 'Total AUM, active clients, monthly revenue, and average returns at a glance.',
+    description: 'Clients on track, active clients, monthly revenue, and budget adherence at a glance.',
     category: 'kpi',
     defaultSize: 'full',
     minSize: 'full',
@@ -33,8 +33,8 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   },
   'portfolio-chart': {
     id: 'portfolio-chart',
-    label: 'Portfolio Performance',
-    description: 'Firm AUM vs. S&P 500 benchmark trend over the last 6 months.',
+    label: 'Spending vs Budget',
+    description: 'Total client spending against collective budget over the last 6 months.',
     category: 'chart',
     defaultSize: 'medium',
     minSize: 'small',
@@ -42,8 +42,8 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   },
   'allocation-chart': {
     id: 'allocation-chart',
-    label: 'Asset Allocation',
-    description: 'Donut chart breakdown of asset classes across all managed portfolios.',
+    label: 'Spending Breakdown',
+    description: 'Average spending category breakdown across all managed clients.',
     category: 'chart',
     defaultSize: 'medium',
     minSize: 'small',
@@ -70,7 +70,7 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   'alerts-panel': {
     id: 'alerts-panel',
     label: 'Alerts',
-    description: 'Compliance warnings, portfolio drift alerts, and critical flags requiring action.',
+    description: 'Overspending warnings, budget breach alerts, and critical flags requiring action.',
     category: 'alerts',
     defaultSize: 'medium',
     minSize: 'small',
@@ -79,8 +79,8 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   },
   'top-clients': {
     id: 'top-clients',
-    label: 'Top Clients',
-    description: 'Highest-value clients ranked by portfolio size and YTD performance.',
+    label: 'Needs Attention',
+    description: 'Clients most over or approaching their monthly budget limit.',
     category: 'data',
     defaultSize: 'medium',
     minSize: 'small',
@@ -89,7 +89,7 @@ export const WIDGET_REGISTRY: Record<WidgetId, WidgetConfig> = {
   'staff-table': {
     id: 'staff-table',
     label: 'Advisor Performance',
-    description: 'Full advisory team roster with AUM, performance metrics, and status.',
+    description: 'Full advisory team roster with managed budgets, active cases, and status.',
     category: 'data',
     defaultSize: 'full',
     minSize: 'medium',
@@ -111,10 +111,10 @@ export function renderWidget(widgetId: WidgetId, _size: WidgetSize): React.React
       return <StatsCards data={kpiData} />
 
     case 'portfolio-chart':
-      return <PortfolioChart data={portfolioPerformanceData} />
+      return <PortfolioChart data={budgetAdherenceData} />
 
     case 'allocation-chart':
-      return <AllocationChart data={assetAllocationData} />
+      return <AllocationChart data={spendingBreakdownData} />
 
     case 'recent-transactions':
       return <RecentTransactions transactions={recentTransactions} />
@@ -126,7 +126,7 @@ export function renderWidget(widgetId: WidgetId, _size: WidgetSize): React.React
       return <AlertsPanel alerts={alerts} />
 
     case 'top-clients':
-      return <TopClients clients={topPerformingClients} />
+      return <TopClients clients={topClients} />
 
     case 'staff-table':
       return <StaffTable advisors={mockAdvisors} />

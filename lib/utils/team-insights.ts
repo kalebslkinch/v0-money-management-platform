@@ -162,14 +162,14 @@ export function computeTeamInsights(user: CurrentUser): TeamInsightData {
   }
 
   // ── Risk tier cohorts ─────────────────────────────────────────────────────
-  const lowIds = visibleClients.filter(c => c.riskLevel === 'low').map(c => c.id)
-  const moderateIds = visibleClients.filter(c => c.riskLevel === 'moderate').map(c => c.id)
-  const highIds = visibleClients.filter(c => c.riskLevel === 'high').map(c => c.id)
+  const lowIds = visibleClients.filter(c => c.budgetHealth === 'on_track').map(c => c.id)
+  const moderateIds = visibleClients.filter(c => c.budgetHealth === 'at_risk').map(c => c.id)
+  const highIds = visibleClients.filter(c => c.budgetHealth === 'over_budget').map(c => c.id)
 
   const riskCohorts: CohortBudgetSummary[] = [
-    buildCohortSummary('Low Risk', lowIds),
-    buildCohortSummary('Moderate Risk', moderateIds),
-    buildCohortSummary('High Risk', highIds),
+    buildCohortSummary('On Track', lowIds),
+    buildCohortSummary('At Risk', moderateIds),
+    buildCohortSummary('Over Budget', highIds),
   ].filter(c => c.clientCount > 0)
 
   // ── Category pressure ─────────────────────────────────────────────────────

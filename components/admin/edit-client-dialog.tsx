@@ -29,9 +29,8 @@ interface EditClientDialogProps {
 }
 
 /**
- * Edit dialog used by SRD-A04 to let advisers (and managers) update key
- * client details. Persists overrides locally; safe to wire to a real API
- * later.
+ * Edit dialog — lets advisers and managers update client profile details.
+ * Persists overrides locally; safe to wire to a real API later.
  */
 export function EditClientDialog({ client, open, onOpenChange }: EditClientDialogProps) {
   const { update } = useClientOverrides()
@@ -39,7 +38,7 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
     name: client.name,
     email: client.email,
     phone: client.phone,
-    riskLevel: client.riskLevel,
+    budgetHealth: client.budgetHealth,
     status: client.status,
   })
 
@@ -49,7 +48,7 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
         name: client.name,
         email: client.email,
         phone: client.phone,
-        riskLevel: client.riskLevel,
+        budgetHealth: client.budgetHealth,
         status: client.status,
       })
     }
@@ -62,7 +61,7 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
       name: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
-      riskLevel: form.riskLevel,
+      budgetHealth: form.budgetHealth,
       status: form.status,
     })
     onOpenChange(false)
@@ -109,20 +108,20 @@ export function EditClientDialog({ client, open, onOpenChange }: EditClientDialo
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Risk level</Label>
+              <Label>Budget health</Label>
               <Select
-                value={form.riskLevel}
+                value={form.budgetHealth}
                 onValueChange={value =>
-                  setForm(state => ({ ...state, riskLevel: value as Client['riskLevel'] }))
+                  setForm(state => ({ ...state, budgetHealth: value as Client['budgetHealth'] }))
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="on_track">On Track</SelectItem>
+                  <SelectItem value="at_risk">At Risk</SelectItem>
+                  <SelectItem value="over_budget">Over Budget</SelectItem>
                 </SelectContent>
               </Select>
             </div>
