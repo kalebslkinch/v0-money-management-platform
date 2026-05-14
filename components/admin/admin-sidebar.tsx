@@ -228,7 +228,17 @@ export function AdminSidebar() {
               <SidebarMenuButton 
                 tooltip="Sign Out" 
                 className="h-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                onClick={() => { window.location.href = 'http://localhost:3000/logout' }}
+                onClick={() => {
+                  try {
+                    if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({ type: 'logout' }, 'http://localhost:3000')
+                      return
+                    }
+                  } catch (e) {
+                    // ignore cross-origin access errors and fall back
+                  }
+                  window.location.href = 'http://localhost:3000/logout'
+                }}
               >
                 <LogOut className="size-4" />
                 <span className="text-sm">Sign Out</span>
