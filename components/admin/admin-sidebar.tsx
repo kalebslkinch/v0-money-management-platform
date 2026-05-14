@@ -231,13 +231,12 @@ export function AdminSidebar() {
                 onClick={() => {
                   try {
                     if (window.parent && window.parent !== window) {
-                      window.parent.postMessage({ type: 'logout' }, 'http://localhost:3000')
+                      window.parent.postMessage({ type: 'logout' }, '*')
                       return
                     }
                   } catch (e) {
-                    // ignore cross-origin access errors and fall back
+                    // ignore cross-origin access errors
                   }
-                  window.location.href = 'http://localhost:3000/logout'
                 }}
               >
                 <LogOut className="size-4" />
