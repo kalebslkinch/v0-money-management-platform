@@ -104,7 +104,7 @@ export function DashboardToolbar({ layout, managerName = 'James', onReturnToBrie
                 </h1>
                 <span className="text-muted-foreground text-sm hidden sm:inline">· Good morning</span>
               </div>
-              <p className="text-muted-foreground text-sm mt-0.5 truncate">
+              <p className="text-muted-foreground text-sm mt-0.5 truncate" suppressHydrationWarning>
                 {activeView?.description ?? "Here's what's happening with your customers' budgets today."}
               </p>
             </div>

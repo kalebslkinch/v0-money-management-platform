@@ -169,7 +169,9 @@ export function getTransactionResults(
   }
 
   return txns.slice(0, 15).map(t => {
-    const amount = `£${t.amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    const amount = t.amount != null
+      ? `£${t.amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : '£0.00'
     return {
       id: `txn:${t.id}`,
       kind: 'transaction',

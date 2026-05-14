@@ -6,6 +6,8 @@ export const mockTransactions: Transaction[] = [
     clientId: 'CLT001',
     clientName: 'Sarah Mitchell',
     type: 'expense',
+    amount: 63.40,
+    date: '2024-01-16T10:30:00',
     status: 'completed',
     description: 'Tesco groceries and household spend',
   },
