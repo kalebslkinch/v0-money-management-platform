@@ -1,61 +1,10 @@
-/**
- * One-time bootstrap that seeds the local store with demo notifications
- * and consultation data so the manager dashboard, FA inbox, and
- * notification bell all have visible content without manual setup.
- *
- * Runs only in the browser, only once per browser profile.
- */
-
 'use client'
 
 import { useEffect } from 'react'
+import type { AppNotification, ConsultationRequest, TaskRecord } from '@/lib/types/store'
 
 const SEED_FLAG_KEY = 'pmfs_seed_v1_done'
 const SEED_TASKS_FLAG_KEY = 'pmfs_seed_v2_tasks_done'
-
-interface SeedNotification {
-  id: string
-  kind: 'complaint' | 'request' | 'critical' | 'info'
-  audience: 'manager' | 'fa' | 'customer' | 'all'
-  audienceUserId?: string
-  title: string
-  message: string
-  href?: string
-  read: boolean
-  createdAt: string
-}
-
-interface SeedConsultationRequest {
-  id: string
-  clientId: string
-  clientName: string
-  topic: string
-  message: string
-  status: 'open' | 'assigned' | 'responded' | 'closed'
-  assignedAdvisorId?: string
-  assignedAdvisorName?: string
-  createdAt: string
-  updatedAt: string
-  responses: never[]
-}
-
-type SeedTaskStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
-type SeedTaskPriority = 'low' | 'medium' | 'high' | 'urgent'
-
-interface SeedTask {
-  id: string
-  title: string
-  description?: string
-  assigneeId?: string
-  assigneeName?: string
-  priority: SeedTaskPriority
-  status: SeedTaskStatus
-  dueDate?: string
-  createdById: string
-  createdByName: string
-  createdAt: string
-  updatedAt: string
-}
 
 export function StoreBootstrap() {
   useEffect(() => {
@@ -66,7 +15,7 @@ export function StoreBootstrap() {
     const minutes = (n: number) => new Date(now - n * 60_000).toISOString()
     const hours = (n: number) => new Date(now - n * 3_600_000).toISOString()
 
-    const seedNotifications: SeedNotification[] = [
+    const seedNotifications: AppNotification[] = [
       {
         id: 'NTF-seed-1',
         kind: 'complaint',
@@ -120,7 +69,7 @@ export function StoreBootstrap() {
       },
     ]
 
-    const seedRequests: SeedConsultationRequest[] = [
+    const seedRequests: ConsultationRequest[] = [
       {
         id: 'REQ-seed-1',
         clientId: 'CLT001',
@@ -170,7 +119,7 @@ export function StoreBootstrap() {
     const now = Date.now()
     const days = (n: number) => new Date(now + n * 86_400_000).toISOString().slice(0, 10)
 
-    const seedTasks: SeedTask[] = [
+    const seedTasks: TaskRecord[] = [
       {
         id: 'TASK-seed-1',
         title: 'Review Q2 portfolio rebalancing',
